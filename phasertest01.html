@@ -50,7 +50,7 @@
         updatedPlayer,
         playerShields = [],
         playerList = [],
-        playerBullets, playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen;
+        playerBullets, playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer;
 
 
 
@@ -63,7 +63,7 @@
 
 
     //Network functionality
-    var socket;
+    var socket, sender, message;
     var myPlayerUpdate = {
             playerID: null,
             strafe: 0,
@@ -74,7 +74,7 @@
         chatMessage = {
             sender: "",
             message: ""
-        }
+        };
 
     console.log(game);
 
@@ -372,7 +372,7 @@
         currentPlayer = playerList[update.playerID];
         currentPlayer.body.velocity.x = 0;
         currentPlayer.body.velocity.y = 0;
-        strafe = update.strafe;
+        var strafe = update.strafe;
         switch (update.move) {
             case 1: //north
                 playerMoveN(currentPlayer, strafe);
@@ -448,7 +448,7 @@
         currentPlayer.children["1"].animations.play('swingGun');
     };
 
-    function playerMoveS(currentPlayer) {
+    function playerMoveS(currentPlayer,strafe) {
         currentPlayer.body.velocity.y = 150;
         currentPlayer.animations.play('walk');
         currentPlayer.children["0"].animations.play('swingShield');
@@ -467,7 +467,7 @@
         currentPlayer.children["1"].animations.play('swingGun');
     };
 
-    function playerMoveW(currentPlayer) {
+    function playerMoveW(currentPlayer,strafe) {
         currentPlayer.body.velocity.x = -150;
         currentPlayer.animations.play('walk');
         currentPlayer.children["0"].animations.play('swingShield');
@@ -493,19 +493,19 @@
         switch (currentPlayer.angle) {
             case -90:
                 gun.fireAngle = Phaser.ANGLE_LEFT;
-                gun.trackSprite(currentPlayer, -19, -15);
+                gun.trackSprite(currentPlayer, -23, -15);
                 break;
             case 90:
                 gun.fireAngle = Phaser.ANGLE_RIGHT;
-                gun.trackSprite(currentPlayer, 19, 15);
+                gun.trackSprite(currentPlayer, 23, 15);
                 break;
             case 0:
                 gun.fireAngle = Phaser.ANGLE_UP;
-                gun.trackSprite(currentPlayer, 15, -19);
+                gun.trackSprite(currentPlayer, 15, -23);
                 break;
             case 180:
                 gun.fireAngle = Phaser.ANGLE_DOWN;
-                gun.trackSprite(currentPlayer, -15, 19);
+                gun.trackSprite(currentPlayer, -15, 23);
                 break;
         };
         gun.fire();
@@ -529,9 +529,10 @@
         };
 
         socket.on('chat', function(newMessage) {
-            name = newMessage.sender;
+            sender = newMessage.sender;
             message = newMessage.message;
-            $("#chatWindow").append("<li>Player #" + name + ": " + newMessage.message + "</li>");
+            $("#chatWindow").append("<li>Player #" + sender + ": " + message + "</li>");
+            $("#chatWindow").scrollTop =  $("#chatWindow").scrollheight;
         });
 
         //Did we receive an 'update' message from the server?

@@ -12,6 +12,7 @@ app.get('/', function(req, res) {
 });
 
 var playerID = [0, 1, 2, 3],
+    activePlayers = [],
     numPlayers = 0;
 
 
@@ -30,7 +31,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('disconnect', function(socket) {
-
+        numPlayers -= 1;
     })
 });
 
