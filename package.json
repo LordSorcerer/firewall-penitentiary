@@ -1,20 +1,22 @@
 {
-  "name": "GroupProject1",
+  "name": "firewall-penitentiary",
   "version": "1.0.0",
-  "description": "",
+  "description": "Clean build of our practice multiplayer game",
   "main": "phasertest01.js",
+  "dependencies": {},
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/LordSorcerer/GroupProject1.git"
+    "url": "git+https://github.com/LordSorcerer/firewall-penitentiary.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/LordSorcerer/GroupProject1/issues"
+    "url": "https://github.com/LordSorcerer/firewall-penitentiary/issues"
   },
-  "homepage": "https://github.com/LordSorcerer/GroupProject1#readme"
+  "homepage": "https://github.com/LordSorcerer/firewall-penitentiary#readme"
 }
