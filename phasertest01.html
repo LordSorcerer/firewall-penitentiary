@@ -511,7 +511,6 @@
         gun.fire();
     }
 
-
     //Networking Stuff
     $(document).ready(function() {
         //Establish network connection
@@ -523,9 +522,9 @@
                 myPlayerUpdate.playerID = ID;
                 console.log("I am player #" + myPlayerUpdate.playerID +".");
                 playerHasID = 1;
-                localStorage.set({
+                /*localStorage.set({
                     'playerID': myPlayerUpdate.playerID
-                });
+                });*/
             });
         };
 
