@@ -29,6 +29,7 @@
         background-color: lightblue;
         width: 800;
         height: 100px;
+        overflow: scroll;
     }
     </style>
 </head>
@@ -45,7 +46,7 @@
     <script type="text/javascript">
     ////////
 
-    var game, player, players, playerID = null,
+    var game, player, players, playerID = null, playerHasID = 0,
         updatedPlayer,
         playerShields = [],
         playerList = [],
@@ -517,10 +518,14 @@
         socket = io();
 
         //When you log on and have no ID, get one
-        if (myPlayerUpdate.playerID === null) {
+        if (playerHasID === 0) {
             socket.on('playerID', function(ID) {
                 myPlayerUpdate.playerID = ID;
-                console.log("I am: " + myPlayerUpdate.playerID);
+                console.log("I am player #" + myPlayerUpdate.playerID +".");
+                playerHasID = 1;
+                localStorage.set({
+                    'playerID': myPlayerUpdate.playerID;
+                });
             });
         };
 
