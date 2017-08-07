@@ -27,9 +27,9 @@ io.on('connection', function(socket) {
             playerList.push(socket.id);
             console.log("Player socket list: " + playerList);
             if (playerList.length >= 4) {
-                io.emit('chat', { sender: "Server", message: "Five seconds until game time..." });
+                io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Five seconds until game time..." });
                 setTimeout(function() {
-                    io.emit('chat', { sender: "Server", message: "The game has begun!" });
+                    io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     gameActive = 1;
                 }, 5000);
             }

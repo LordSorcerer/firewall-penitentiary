@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <title>Firewall Penitentiary</title>
+    <link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script type="text/javascript" src="js/phaser.min.js"></script>
@@ -26,10 +27,11 @@
     }
 
     #chatWindow {
-        background-color: lightblue;
+        background-color: black;
         width: 800;
         height: 100px;
-        overflow: scroll;
+        overflow: auto;
+        font-family: Orbitron;
     }
     </style>
 </head>
@@ -76,6 +78,7 @@
 
         chatMessage = {
             sender: "",
+            fontColor: "",
             message: ""
         };
 
@@ -151,21 +154,27 @@
         players = game.add.group();
         //loads the players onto the map
         playerBlue = spawnPlayer("blue");
+        playerBlue.data.fontColor = "blue";
         playerList.push(playerBlue);
         players.add(playerBlue);
         playerRed = spawnPlayer("red");
+        playerRed.data.fontColor = "red";
         playerList.push(playerRed);
         players.add(playerRed);
         playerYellow = spawnPlayer("yellow");
+        playerYellow.data.fontColor = "yellow";
         playerList.push(playerYellow);
         players.add(playerYellow);
         playerGreen = spawnPlayer("green");
+        playerGreen.data.fontColor = "lightgreen";
         playerList.push(playerGreen);
         players.add(playerGreen);
 
         // adding weapon and a firebutton and having its movements track player
         gun = game.add.weapon(3, 'playerBullet');
         gun.fireRate = 300;
+        gun.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
+        gun.bulletLifespan = 3000;
         gun.trackSprite(player, 15, -19);
 
 
@@ -197,10 +206,11 @@
         //Create a collision event - player vs pillars
         var pillarStruck = game.physics.arcade.collide(players, pillars);
         var pillarShot = game.physics.arcade.collide(playerBullets, pillars);
-        var shieldStruck = game.physics.arcade.collide(playerShields, playerBullets);
         var pillarShot2 = game.physics.arcade.collide(gun.bullets, pillars);
+        var shieldStruck = game.physics.arcade.collide(playerShields, playerBullets);
         var shieldStruck2 = game.physics.arcade.collide(playerShields, gun.bullets);
         var shieldStruck2 = game.physics.arcade.collide(players, players);
+        var bulletStruck = game.physics.arcade.collide(gun.bullets, gun.bullets);
         //Collision detection for weapons fire
         //vs player
         game.physics.arcade.collide(players, playerBullets, killPlayer, null, this);
@@ -555,6 +565,7 @@
         $("#sendChat").on("click", function() {
             event.preventDefault();
             chatMessage.sender = "Player #" + myPlayerUpdate.playerID;
+            chatMessage.fontColor = playerList[myPlayerUpdate.playerID].data.fontColor;
             chatMessage.message = $("#message").val().trim();
             $("#message").val("");
             socket.emit('chat', chatMessage);
@@ -562,9 +573,12 @@
 
         socket.on('chat', function(newMessage) {
             sender = newMessage.sender;
+            fontColor = newMessage.fontColor;
             message = newMessage.message;
-            $("#chatWindow").append("<li>" + sender + ": " + message + "</li>");
-            $("#chatWindow").scrollTop = $("#chatWindow").scrollheight;
+            $("#chatWindow").append("<li style='color:" + fontColor + ";'>" + sender + ": " + message + "</li>");
+            $("#chatWindow").scrollTop = $("#chatWindow").scrollHeight;
+
+            /*window.scrollTo(0, document.body.scrollHeight);*/
         });
     });
     </script>
