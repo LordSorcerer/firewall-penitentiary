@@ -7,13 +7,16 @@
     <link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script type="text/javascript" src="js/phaser.min.js"></script>
+    <!-- Text to voice API -->
+    <script type="text/javascript" src="./js/responsivevoice.js"></script>
+    <script type="text/javascript" src="./js/phaser.min.js"></script>
     <style type="text/css">
     body {
         background-color: darkblue;
         float: left;
         box-sizing: border-box;
     }
+    
     /* This is the element to modify to style the game window */
 
     canvas {
@@ -45,12 +48,16 @@
     </div>
     <ul id="chatWindow"></ul>
     <form>
-        <input id='message' type=t ext length=80>
+        <input id='message' type=text length=80>
         <button id='sendChat'>Send</button>
         <button id='exitGame'>Exit Game</button>
     </form>
     <script type="text/javascript">
     ////////
+
+    var music = new Audio('./assets/audio/Urban-Jungle-2061_Looping.mp3');
+    music.loop = true;
+    var explosion = new Audio('./assets/audio/explosion.mp3');
 
     var game, gameStatus, player, players, playerID = null,
         playerHasID = 0,
@@ -110,10 +117,12 @@
         game.load.image('deathTwo', './assets/deathTwo.png');
         game.load.image('deathFive', './assets/deathFive.png');
 
+
     }
 
 
     function create() {
+        /*  music.play();*/
         /*Create map & terrain features*/
         game.add.sprite(0, 0, 'map01');
 
@@ -178,10 +187,11 @@
 
         // adding weapon and a firebutton and having its movements track player
         gun = game.add.weapon(3, 'playerBullet');
-        gun.fireRate = 300;
-        gun.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
-        gun.bulletLifespan = 3000;
+        gun.fireRate = 500;
         gun.trackSprite(player, 15, -19);
+        //bullets last 5 seconds before disappearing
+        gun.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
+        gun.bulletLifespan = 5000;
 
 
         //Register cursor keys for player movement
@@ -189,6 +199,7 @@
         cursors = game.input.keyboard.createCursorKeys(),
             //Register the other keys.
             fireButton = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR),
+            //.SHIFT key is not working so we use the keyCode of 16
             strafeButton = game.input.keyboard.addKey(16),
             keyA = game.input.keyboard.addKey(Phaser.Keyboard.A),
             keyS = game.input.keyboard.addKey(Phaser.Keyboard.S),
@@ -216,7 +227,6 @@
         var shieldStruck = game.physics.arcade.collide(playerShields, playerBullets);
         var shieldStruck2 = game.physics.arcade.collide(playerShields, gun.bullets);
         var shieldStruck2 = game.physics.arcade.collide(players, players);
-        var bulletStruck = game.physics.arcade.collide(gun.bullets, gun.bullets);
         //Collision detection for weapons fire
         //vs player
         game.physics.arcade.collide(players, playerBullets, killPlayer, null, this);
@@ -236,9 +246,6 @@
             game.debug.body(player);
             game.debug.body(player.children["0"]);
         });*/
-        game.debug.body(playerShields);
-        game.debug.body(players);
-
 
         if (keyW.isDown && keyA.isDown || cursors.up.isDown && cursors.left.isDown) {
             //UP LEFT
@@ -424,7 +431,7 @@
                 playerMoveNW(currentPlayer);
                 break;
             default:
-                //If you're not moving, stop character, left and right equipment animations
+                //If you're not moving, stop character, stop left and right equipment animations
                 currentPlayer.animations.stop();
                 currentPlayer.children["0"].animations.stop();
                 currentPlayer.children["1"].animations.stop();
@@ -531,6 +538,7 @@
                 break;
         };
         gun.fire();
+        explosion.play();
     }
 
     //Networking Stuff
@@ -544,7 +552,6 @@
             socket.emit('requestPlayerID');
         }
 
-
         //Get a playerID from the server
         socket.on('playerID', function(ID) {
             //Check to see if the game is open.  If not, observe instead.
@@ -554,7 +561,6 @@
                 console.log("I am player #" + myPlayerUpdate.playerID + ". On socket " + socket.id);
             }
         });
-
 
         //Did we receive an 'update' message from the server?
         socket.on('updatePlayer', function(update) {
@@ -572,7 +578,10 @@
             sender = newMessage.sender;
             fontColor = newMessage.fontColor;
             message = newMessage.message;
-            htmlChatWindow.append("<li style='color:" + fontColor + ";'>" + sender + ": " + message + "</li>");
+            htmlChatWindow.append("<li><span style='color:" + fontColor + ";'>" + sender + ": </span>" + message + "</li>");
+            if (sender = "Server") {
+                responsiveVoice.speak(message);
+            };
             //Scrolls to the newest message
             htmlChatWindow.animate({ scrollTop: htmlChatWindow.prop('scrollHeight') }, 0);
         });
@@ -580,10 +589,10 @@
         $("#sendChat").on("click", function() {
             event.preventDefault();
             //Make sure the user isn't entering a blank line
-            if (htmlMessage.val() !== "") {
+            if (htmlMessage.val().trim() !== "") {
                 chatMessage.sender = "Player #" + myPlayerUpdate.playerID;
                 chatMessage.fontColor = playerList[myPlayerUpdate.playerID].data.fontColor;
-                chatMessage.message = $("#message").val().trim();
+                chatMessage.message = htmlMessage.val().trim();
                 htmlMessage.val("");
                 socket.emit('chat', chatMessage);
             }
