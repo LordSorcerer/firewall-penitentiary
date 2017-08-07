@@ -46,7 +46,7 @@
     <script type="text/javascript">
     ////////
 
-    var game, player, players, playerID = null,
+    var game, gameStatus, player, players, playerID = null,
         playerHasID = 0,
         updatedPlayer,
         playerShields = [],
@@ -266,12 +266,14 @@
             myPlayerUpdate.fire = 0;
         };
 
+        if (gameStatus != -1) {
+            //Adds the player's current location to the update
+            myPlayerUpdate.x = playerList[myPlayerUpdate.playerID].x;
+            myPlayerUpdate.y = playerList[myPlayerUpdate.playerID].y;
 
-        //Adds the player's current location to the update
-        myPlayerUpdate.x = playerList[myPlayerUpdate.playerID].x;
-        myPlayerUpdate.y = playerList[myPlayerUpdate.playerID].y;
-
-
+            //Updates the server with the player's current position, movement and fire requests
+            socket.emit('updatePlayer', myPlayerUpdate);
+        };
     }
 
     /*Our custom code to handle game events */
@@ -374,11 +376,11 @@
     /*Player movement routines */
 
     function playerMove(update) {
-        currentPlayer = playerList[update.playerID];
         currentPlayer.body.velocity.x = 0;
         currentPlayer.body.velocity.y = 0;
-        currentPlayer.x = update.x;
-        currentPlayer.y = update.y;
+        //x,y currently broken
+        /*     currentPlayer.x = update.x;
+             currentPlayer.y = update.y;*/
         var strafe = update.strafe;
         switch (update.move) {
             case 1: //north
@@ -483,8 +485,6 @@
             currentPlayer.angle = -90;
             currentPlayer.children["0"].body.setSize(15, 32, 0, -32);
         };
-
-
     };
 
     function playerMoveNW(currentPlayer) {
@@ -496,7 +496,6 @@
     }
 
     function playerFire(update) {
-        currentPlayer = playerList[update.playerID];
         switch (currentPlayer.angle) {
             case -90:
                 gun.fireAngle = Phaser.ANGLE_LEFT;
@@ -524,27 +523,38 @@
         socket = io();
         //tell the server you have an ID or that you have no id (ID < 0)
         // myPlayerUpdate.playerID = localStorage.getItem("playerID");
+        existingUser = sessionStorage.getItem("playerID");
+        if (existingUser == null) {
+            socket.emit('requestPlayerID');
+        }
 
-        socket.emit('requestPlayerID');
 
-        //Get an ID from the server
+        //Get a playerID from the server
         socket.on('playerID', function(ID) {
-            myPlayerUpdate.playerID = ID;
-            console.log("I am player #" + myPlayerUpdate.playerID + ". On socket " + socket.id);
+            //Check to see if the game is open.  If not, observe instead.
+            gameStatus = ID;
+            if (gameStatus != -1) {
+                myPlayerUpdate.playerID = ID;
+                console.log("I am player #" + myPlayerUpdate.playerID + ". On socket " + socket.id);
+            }
         });
 
 
         //Did we receive an 'update' message from the server?
         socket.on('updatePlayer', function(update) {
-            if (update.fire === 1) {
-                playerFire(update);
-            }
-            playerMove(update);
+            currentPlayer = playerList[update.playerID];
+            //Dead players shouldn't be updating themselves... unless they're zombies
+            if (currentPlayer.alive === true) {
+                if (update.fire === 1) {
+                    playerFire(update);
+                }
+                playerMove(update);
+            };
         });
 
         $("#sendChat").on("click", function() {
             event.preventDefault();
-            chatMessage.sender = myPlayerUpdate.playerID;
+            chatMessage.sender = "Player #" + myPlayerUpdate.playerID;
             chatMessage.message = $("#message").val().trim();
             $("#message").val("");
             socket.emit('chat', chatMessage);
@@ -553,15 +563,9 @@
         socket.on('chat', function(newMessage) {
             sender = newMessage.sender;
             message = newMessage.message;
-            $("#chatWindow").append("<li>Player #" + sender + ": " + message + "</li>");
+            $("#chatWindow").append("<li>" + sender + ": " + message + "</li>");
             $("#chatWindow").scrollTop = $("#chatWindow").scrollheight;
         });
-
-        //Updates the server with the player's current position, movement and fire requests
-        setInterval(function() {
-            socket.emit('updatePlayer', myPlayerUpdate);
-        }, 100);
-
     });
     </script>
 </body>

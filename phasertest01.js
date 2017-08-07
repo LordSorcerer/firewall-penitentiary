@@ -35,8 +35,9 @@ io.on('connection', function(socket) {
             }
 
         } else {
-            io.emit('playerID', -1);
-            console.log("Game full.  Player control refused.");
+            socket.emit('playerID', -1);
+            console.log("Socket: " + socket.id + ", game full.  Enabling observation mode.");
+            socket.emit('chat',{sender: "Server", message: "Game full.  Switching to observation mode." } )
         };
     });
 
