@@ -13,21 +13,25 @@ app.get('/', function(req, res) {
 
 var playerID = 0,
     playerList = [],
-    numPlayers = 0;
+    numPlayers = 0,
+    gameActive = 0;
 
 
 io.on('connection', function(socket) {
     //Checks to see if the game is full.  If not, give the player an ID and increment the total number of players.
     socket.on('requestPlayerID', function() {
-        if (playerList.length < 4) {
-            //Supposedly a workaround for a chrome '++' error with socket.io
-            playerID = playerList.length;
-            if (playerID >= 0) {
-                socket.emit('playerID', playerID);
-                console.log("Player #" + playerID + " has joined. On socket " + socket.id);
-                playerList.push(socket.id);
-                console.log("Player socket list: " + playerList);
-                socket.emit('sendPlayerList', playerList);
+        playerID = playerList.length;
+        if (playerID >= 0 && playerList.length < 4) {
+            socket.emit('playerID', playerID);
+            console.log("Player #" + playerID + " has joined. On socket " + socket.id);
+            playerList.push(socket.id);
+            console.log("Player socket list: " + playerList);
+            if (playerList.length >= 4) {
+                io.emit('chat', { sender: "Server", message: "Five seconds until game time..." });
+                setTimeout(function() {
+                    io.emit('chat', { sender: "Server", message: "The game has begun!" });
+                    gameActive = 1;
+                }, 5000);
             }
 
         } else {
@@ -41,8 +45,11 @@ io.on('connection', function(socket) {
     });
 
     socket.on('updatePlayer', function(update) {
-        io.emit('updatePlayer', update);
+        if (gameActive === 1) {
+            io.emit('updatePlayer', update);
+        };
     });
+
 
     socket.on('disconnect', function(socket) {
         //get the disconnected socket ID and remove it from the player list
@@ -50,7 +57,7 @@ io.on('connection', function(socket) {
         if (index != -1) {
             playerList.splice(index, 1);
             console.info("Socket " + socket.id + " has disconnected.");
-        }
+        };
     });
 });
 
