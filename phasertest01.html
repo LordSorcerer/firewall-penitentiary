@@ -46,7 +46,8 @@
     <script type="text/javascript">
     ////////
 
-    var game, player, players, playerID = null, playerHasID = 0,
+    var game, player, players, playerID = null,
+        playerHasID = 0,
         updatedPlayer,
         playerShields = [],
         playerList = [],
@@ -260,10 +261,10 @@
         };
 
 
-//Non-functional code
-      /*  if (mouse.isDown) {
-            console.log("Mouse X: " + mouse.x + " Y: " + mouse.y);
-        };*/
+        //Non-functional code
+        /*  if (mouse.isDown) {
+              console.log("Mouse X: " + mouse.x + " Y: " + mouse.y);
+          };*/
 
         //Updates the server with the player's new movement and fire requests
         socket.emit('updatePlayer', myPlayerUpdate);
@@ -448,7 +449,7 @@
         currentPlayer.children["1"].animations.play('swingGun');
     };
 
-    function playerMoveS(currentPlayer,strafe) {
+    function playerMoveS(currentPlayer, strafe) {
         currentPlayer.body.velocity.y = 150;
         currentPlayer.animations.play('walk');
         currentPlayer.children["0"].animations.play('swingShield');
@@ -467,7 +468,7 @@
         currentPlayer.children["1"].animations.play('swingGun');
     };
 
-    function playerMoveW(currentPlayer,strafe) {
+    function playerMoveW(currentPlayer, strafe) {
         currentPlayer.body.velocity.x = -150;
         currentPlayer.animations.play('walk');
         currentPlayer.children["0"].animations.play('swingShield');
@@ -515,29 +516,20 @@
     $(document).ready(function() {
         //Establish network connection
         socket = io();
+        //tell the server you have an ID or that you have no id (ID < 0)
+        // myPlayerUpdate.playerID = localStorage.getItem("playerID");
 
-        //When you log on and have no ID, get one
-        if (playerHasID === 0) {
-            socket.on('playerID', function(ID) {
-                myPlayerUpdate.playerID = ID;
-                console.log("I am player #" + myPlayerUpdate.playerID +".");
-                playerHasID = 1;
-                /*localStorage.set({
-                    'playerID': myPlayerUpdate.playerID
-                });*/
-            });
-        };
+        socket.emit('requestPlayerID');
 
-        socket.on('chat', function(newMessage) {
-            sender = newMessage.sender;
-            message = newMessage.message;
-            $("#chatWindow").append("<li>Player #" + sender + ": " + message + "</li>");
-            $("#chatWindow").scrollTop =  $("#chatWindow").scrollheight;
+        //Get an ID from the server
+        socket.on('playerID', function(ID) {
+            myPlayerUpdate.playerID = ID;
+            console.log("I am player #" + myPlayerUpdate.playerID + ". On socket " + socket.id);
         });
+
 
         //Did we receive an 'update' message from the server?
         socket.on('updatePlayer', function(update) {
-            /*console.log(update);*/
             if (update.fire === 1) {
                 playerFire(update);
             }
@@ -551,6 +543,13 @@
             $("#message").val("");
             socket.emit('chat', chatMessage);
         })
+
+        socket.on('chat', function(newMessage) {
+            sender = newMessage.sender;
+            message = newMessage.message;
+            $("#chatWindow").append("<li>Player #" + sender + ": " + message + "</li>");
+            $("#chatWindow").scrollTop = $("#chatWindow").scrollheight;
+        });
     });
     </script>
 </body>

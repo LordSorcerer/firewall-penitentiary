@@ -11,19 +11,33 @@ app.get('/', function(req, res) {
     res.sendFile(__dirname + '/phasertest01.html');
 });
 
-var playerID = [0, 1, 2, 3],
-    activePlayers = [],
+var playerID = 0,
+    playerList = [],
     numPlayers = 0;
 
 
 io.on('connection', function(socket) {
-    if (numPlayers < 4) {
-        io.emit('playerID', playerID[numPlayers]);
-        numPlayers += 1; //Supposedly a workaround for a chrome ++ error with socket.io
-        console.log("Player #" + numPlayers + " has joined.");
-    };
+    //Checks to see if the game is full.  If not, give the player an ID and increment the total number of players.
+    socket.on('requestPlayerID', function() {
+        if (playerList.length < 4) {
+            //Supposedly a workaround for a chrome '++' error with socket.io
+            playerID = playerList.length;
+            if (playerID >= 0) {
+                socket.emit('playerID', playerID);
+                console.log("Player #" + playerID + " has joined. On socket " + socket.id);
+                playerList.push(socket.id);
+                console.log("Player socket list: " + playerList);
+                socket.emit('sendPlayerList', playerList);
+            }
+
+        } else {
+            io.emit('playerID', -1);
+            console.log("Game full.  Player control refused.");
+        };
+    });
+
     socket.on('chat', function(chatMessage) {
-    	io.emit('chat', chatMessage);
+        io.emit('chat', chatMessage);
     });
 
     socket.on('updatePlayer', function(update) {
@@ -31,9 +45,16 @@ io.on('connection', function(socket) {
     });
 
     socket.on('disconnect', function(socket) {
-        numPlayers -= 1;
-    })
+        //get the disconnected socket ID and remove it from the player list
+        var index = playerList.indexOf(socket);
+        if (index != -1) {
+            playerList.splice(index, 1);
+            console.info("Socket " + socket.id + " has disconnected.");
+        }
+    });
 });
+
+
 
 server.listen(port, function() {
     console.log('listening on *:' + port);
