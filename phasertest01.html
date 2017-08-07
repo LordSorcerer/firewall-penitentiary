@@ -28,8 +28,11 @@
 
     #chatWindow {
         background-color: black;
-        width: 800;
+        border: lightblue 2px solid;
+        color: white;
+        width: 800px;
         height: 100px;
+        margin: 10px;
         overflow: auto;
         font-family: Orbitron;
     }
@@ -44,6 +47,7 @@
     <form>
         <input id='message' type=t ext length=80>
         <button id='sendChat'>Send</button>
+        <button id='exitGame'>Exit Game</button>
     </form>
     <script type="text/javascript">
     ////////
@@ -54,6 +58,8 @@
         playerShields = [],
         playerList = [],
         playerBullets, playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer;
+    var htmlMessage = $("#message"),
+        htmlChatWindow = $("#chatWindow");
 
 
 
@@ -509,19 +515,19 @@
         switch (currentPlayer.angle) {
             case -90:
                 gun.fireAngle = Phaser.ANGLE_LEFT;
-                gun.trackSprite(currentPlayer, -23, -15);
+                gun.trackSprite(currentPlayer, -25, -15);
                 break;
             case 90:
                 gun.fireAngle = Phaser.ANGLE_RIGHT;
-                gun.trackSprite(currentPlayer, 23, 15);
+                gun.trackSprite(currentPlayer, 25, 15);
                 break;
             case 0:
                 gun.fireAngle = Phaser.ANGLE_UP;
-                gun.trackSprite(currentPlayer, 15, -23);
+                gun.trackSprite(currentPlayer, 15, -25);
                 break;
             case 180:
                 gun.fireAngle = Phaser.ANGLE_DOWN;
-                gun.trackSprite(currentPlayer, -15, 23);
+                gun.trackSprite(currentPlayer, -15, 25);
                 break;
         };
         gun.fire();
@@ -562,23 +568,31 @@
             };
         });
 
-        $("#sendChat").on("click", function() {
-            event.preventDefault();
-            chatMessage.sender = "Player #" + myPlayerUpdate.playerID;
-            chatMessage.fontColor = playerList[myPlayerUpdate.playerID].data.fontColor;
-            chatMessage.message = $("#message").val().trim();
-            $("#message").val("");
-            socket.emit('chat', chatMessage);
-        })
-
         socket.on('chat', function(newMessage) {
             sender = newMessage.sender;
             fontColor = newMessage.fontColor;
             message = newMessage.message;
-            $("#chatWindow").append("<li style='color:" + fontColor + ";'>" + sender + ": " + message + "</li>");
-            $("#chatWindow").scrollTop = $("#chatWindow").scrollHeight;
+            htmlChatWindow.append("<li style='color:" + fontColor + ";'>" + sender + ": " + message + "</li>");
+            //Scrolls to the newest message
+            htmlChatWindow.animate({ scrollTop: htmlChatWindow.prop('scrollHeight') }, 0);
+        });
 
-            /*window.scrollTo(0, document.body.scrollHeight);*/
+        $("#sendChat").on("click", function() {
+            event.preventDefault();
+            //Make sure the user isn't entering a blank line
+            if (htmlMessage.val() !== "") {
+                chatMessage.sender = "Player #" + myPlayerUpdate.playerID;
+                chatMessage.fontColor = playerList[myPlayerUpdate.playerID].data.fontColor;
+                chatMessage.message = $("#message").val().trim();
+                htmlMessage.val("");
+                socket.emit('chat', chatMessage);
+            }
+        });
+
+        $("#exitGame").on("click", function() {
+            event.preventDefault();
+            //Make sure the user isn't entering a blank line
+            socket.emit('disconnect');
         });
     });
     </script>
