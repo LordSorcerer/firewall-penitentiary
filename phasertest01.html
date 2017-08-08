@@ -16,7 +16,6 @@
         float: left;
         box-sizing: border-box;
     }
-    
     /* This is the element to modify to style the game window */
 
     canvas {
@@ -55,16 +54,24 @@
     <script type="text/javascript">
     ////////
 
-    var music = new Audio('./assets/audio/Urban-Jungle-2061_Looping.mp3');
-    music.loop = true;
+    var gameMusic = [new Audio('./assets/audio/Urban-Jungle-2061_Looping.mp3'), song1 = new Audio('./assets/audio/Binary-Options.mp3')];
+    gameMusic.forEach(function(key) {
+        key.loop = true;
+        key.volume = 0.35;
+    });
     var explosion = new Audio('./assets/audio/explosion.mp3');
-
+    var currentMusic = 0;
     var game, gameStatus, player, players, playerID = null,
         playerHasID = 0,
-        updatedPlayer,
-        playerShields = [],
+        updatedPlayer;
+    //Lists to define player avatar
+    var playerShields = [],
         playerList = [],
-        playerBullets, playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer;
+        playerGuns = [],
+        playerBullets, playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun;
+    //Constants!
+    var maxPlayers = 4;
+
     var htmlMessage = $("#message"),
         htmlChatWindow = $("#chatWindow");
 
@@ -122,7 +129,7 @@
 
 
     function create() {
-        /*  music.play();*/
+        gameMusic[currentMusic].play();
         /*Create map & terrain features*/
         game.add.sprite(0, 0, 'map01');
 
@@ -168,10 +175,6 @@
         //Create a group for all the players
         players = game.add.group();
         //loads the players onto the map
-        playerBlue = spawnPlayer("blue");
-        playerBlue.data.fontColor = "blue";
-        playerList.push(playerBlue);
-        players.add(playerBlue);
         playerRed = spawnPlayer("red");
         playerRed.data.fontColor = "red";
         playerList.push(playerRed);
@@ -180,19 +183,25 @@
         playerYellow.data.fontColor = "yellow";
         playerList.push(playerYellow);
         players.add(playerYellow);
+        playerBlue = spawnPlayer("blue");
+        playerBlue.data.fontColor = "blue";
+        playerList.push(playerBlue);
+        players.add(playerBlue);
         playerGreen = spawnPlayer("green");
         playerGreen.data.fontColor = "lightgreen";
         playerList.push(playerGreen);
         players.add(playerGreen);
 
         // adding weapon and a firebutton and having its movements track player
-        gun = game.add.weapon(3, 'playerBullet');
-        gun.fireRate = 500;
-        gun.trackSprite(player, 15, -19);
-        //bullets last 5 seconds before disappearing
-        gun.bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
-        gun.bulletLifespan = 5000;
 
+        for (i = 0; i < maxPlayers; i++) {
+            playerGuns.push(game.add.weapon(3, 'playerBullet'));
+            playerGuns[i].fireRate = 500;
+            playerGuns[i].trackSprite(players[i], 15, -19);
+            playerGuns[i].bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
+            playerGuns[i].bulletLifespan = 5000;
+            console.log(playerGuns[i]);
+        };
 
         //Register cursor keys for player movement
         console.log(Phaser.Keyboard.SHIFT);
@@ -213,25 +222,24 @@
             playerBullet.angle += 10;
         });
 
-        gun.bullets.forEachAlive(function(playerBullet) {
-            playerBullet.angle += 10;
-            playerBullet.body.bounce.x = 1;
-            playerBullet.body.bounce.y = 1;
-            playerBullet.body.collideWorldBounds = true;
-        });
+        //Iterate through each player's gun's bullets and change them
+        for (i = 0; i < playerGuns.length; i++) {
+            playerGuns[i].bullets.forEachAlive(function(playerBullet) {
+                //Set up bullet collision events
+                game.physics.arcade.collide(playerShields, playerBullet);
+                game.physics.arcade.collide(playerBullet, pillars);
+                game.physics.arcade.collide(players, playerBullet, killPlayer, null, this);
 
-        //Create a collision event - player vs pillars
-        var pillarStruck = game.physics.arcade.collide(players, pillars);
-        var pillarShot = game.physics.arcade.collide(playerBullets, pillars);
-        var pillarShot2 = game.physics.arcade.collide(gun.bullets, pillars);
-        var shieldStruck = game.physics.arcade.collide(playerShields, playerBullets);
-        var shieldStruck2 = game.physics.arcade.collide(playerShields, gun.bullets);
-        var shieldStruck2 = game.physics.arcade.collide(players, players);
-        //Collision detection for weapons fire
-        //vs player
-        game.physics.arcade.collide(players, playerBullets, killPlayer, null, this);
-        game.physics.arcade.collide(players, gun.bullets, killPlayer, null, this);
+                playerBullet.angle += 10;
+                playerBullet.body.bounce.x = 1;
+                playerBullet.body.bounce.y = 1;
+                playerBullet.body.collideWorldBounds = true;
+            });
+        };
 
+        //Collision with players and obstacles
+        game.physics.arcade.collide(players, pillars);
+        game.physics.arcade.collide(players, players);
 
         //Register mouse for aiming and firing
         mouse = game.input.mousePointer;
@@ -305,16 +313,6 @@
 
         /*Create player sprites based on color.  Sets start location, sprite, adds shield and sets respawn location on the event of death*/
         switch (playerColor) {
-            case "blue":
-                player = game.add.sprite(400, 580, 'prisoner_blue');
-                playerShield = game.add.sprite(-30, -25, 'shield_blue');
-                //Enable physics here so we can set the shield angle properly
-                game.physics.arcade.enable(playerShield);
-                //Set proper angle and redirect shield
-                player.angle = 0;
-                playerShield.body.setSize(32, 15, 0, -5);
-                player.data.respawnX = 400, player.data.respawnY = 580;
-                break;
             case "red":
                 player = game.add.sprite(400, 20, 'prisoner_red');
                 playerShield = game.add.sprite(-30, -25, 'shield_red');
@@ -334,6 +332,16 @@
                 player.angle = -90;
                 playerShield.body.setSize(15, 32, 0, -32);
                 player.data.respawnX = 780, player.data.respawnY = 300;
+                break;
+            case "blue":
+                player = game.add.sprite(400, 580, 'prisoner_blue');
+                playerShield = game.add.sprite(-30, -25, 'shield_blue');
+                //Enable physics here so we can set the shield angle properly
+                game.physics.arcade.enable(playerShield);
+                //Set proper angle and redirect shield
+                player.angle = 0;
+                playerShield.body.setSize(32, 15, 0, -5);
+                player.data.respawnX = 400, player.data.respawnY = 580;
                 break;
             case "green":
                 player = game.add.sprite(20, 300, 'prisoner_green');
@@ -390,7 +398,8 @@
         emitter.start(true, 3000, null, 30);
         bullet.kill();
         //kill child 0 (the shield) to prevent 'phantom bounce'
-        player.children["0"].kill();
+        console.log("bullet" + bullet + "shield" + player.children[0]);
+      /*  player.children["0"].kill();*/
         player.kill();
         //Respawn after 5 seconds
         setTimeout(respawnPlayer, 5000, player);
@@ -521,23 +530,23 @@
     function playerFire(update) {
         switch (currentPlayer.angle) {
             case -90:
-                gun.fireAngle = Phaser.ANGLE_LEFT;
-                gun.trackSprite(currentPlayer, -25, -15);
+                currentGun.fireAngle = Phaser.ANGLE_LEFT;
+                currentGun.trackSprite(currentPlayer, -25, -15);
                 break;
             case 90:
-                gun.fireAngle = Phaser.ANGLE_RIGHT;
-                gun.trackSprite(currentPlayer, 25, 15);
+                currentGun.fireAngle = Phaser.ANGLE_RIGHT;
+                currentGun.trackSprite(currentPlayer, 25, 15);
                 break;
             case 0:
-                gun.fireAngle = Phaser.ANGLE_UP;
-                gun.trackSprite(currentPlayer, 15, -25);
+                currentGun.fireAngle = Phaser.ANGLE_UP;
+                currentGun.trackSprite(currentPlayer, 15, -25);
                 break;
             case 180:
-                gun.fireAngle = Phaser.ANGLE_DOWN;
-                gun.trackSprite(currentPlayer, -15, 25);
+                currentGun.fireAngle = Phaser.ANGLE_DOWN;
+                currentGun.trackSprite(currentPlayer, -15, 25);
                 break;
         };
-        gun.fire();
+        currentGun.fire();
         explosion.play();
     }
 
@@ -564,7 +573,9 @@
 
         //Did we receive an 'update' message from the server?
         socket.on('updatePlayer', function(update) {
+            //Make sure we're updating the right player and gun
             currentPlayer = playerList[update.playerID];
+            currentGun = playerGuns[update.playerID];
             //Dead players shouldn't be updating themselves... unless they're zombies
             if (currentPlayer.alive === true) {
                 if (update.fire === 1) {
@@ -574,12 +585,19 @@
             };
         });
 
+        socket.on('music', function(track) {
+            console.log("Got music req");
+            gameMusic[currentMusic].pause();
+            gameMusic[track].play();
+            currentMusic = track;
+        });
+
         socket.on('chat', function(newMessage) {
             sender = newMessage.sender;
             fontColor = newMessage.fontColor;
             message = newMessage.message;
             htmlChatWindow.append("<li><span style='color:" + fontColor + ";'>" + sender + ": </span>" + message + "</li>");
-            if (sender = "Server") {
+            if (sender === "Server") {
                 responsiveVoice.speak(message);
             };
             //Scrolls to the newest message
