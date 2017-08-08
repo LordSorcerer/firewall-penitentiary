@@ -17,7 +17,7 @@ var playerID = 0,
     numPlayers = 0,
     gameActive = 0;
 
-var maxPlayers = 1;
+var maxPlayers = 4;
 
 setupServer();
 
@@ -30,7 +30,7 @@ io.on('connection', function(socket) {
             socket.emit('playerID', playerID);
             console.log("Player #" + playerID + " has joined on socket " + socket.id + ".");
             playerList.push({ 'socketID': socket.id, 'playerID': playerID });
-             console.log("FreeIDList(" + freeIDList.length + " slot(s) available): " + freeIDList);
+            console.log("FreeIDList(" + freeIDList.length + " slot(s) available): " + freeIDList);
             //The Server chats with either the joining player's socket or ALL players' sockets
             if (freeIDList.length <= 0) {
                 io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The final player has joined.  Ten seconds until game time." });
@@ -66,13 +66,16 @@ io.on('connection', function(socket) {
     socket.on('disconnect', function() {
         //get the disconnected socket ID and remove it from the player list
         var index = matchPlayerSocketID(socket.id);
-        console.log("Index: " + index);
         //must also get the player's ID so we can free it for use
         if (index != -1) {
             var tempPlayerID = playerList[index].playerID;
             playerList.splice(index, 1);
             freeIDList.push(tempPlayerID);
-            console.log(freeIDList);
+            //Sort the list, lowest to highest
+            freeIDList.sort(function(a, b) {
+                return a - b;
+            });
+            console.log("FreeIDList(" + freeIDList.length + " slot(s) available): " + freeIDList);
         };
         console.info("Socket " + socket.id + " has disconnected.");
         io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Player#" + tempPlayerID + " has disconnected." });

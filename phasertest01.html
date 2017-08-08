@@ -54,6 +54,7 @@
     <script type="text/javascript">
     ////////
 
+    var top = this;
     var gameMusic = [new Audio('./assets/audio/Urban-Jungle-2061_Looping.mp3'), song1 = new Audio('./assets/audio/Binary-Options.mp3')];
     gameMusic.forEach(function(key) {
         key.loop = true;
@@ -68,7 +69,7 @@
     var playerShields = [],
         playerList = [],
         playerGuns = [],
-        playerBullets, playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun;
+        playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun;
     //Constants!
     var maxPlayers = 4;
 
@@ -147,25 +148,6 @@
             pillar.body.immovable = true;
         });
 
-        //Creates a group called playerBullets and randomly adds 10 of them to the map
-        playerBullets = game.add.group();
-        /*for (i = 0; i < 10; i++) {
-            var xLoc = Math.floor(Math.random() * 790);
-            var yLoc = Math.floor(Math.random() * 590);
-            playerBullets.create(xLoc, yLoc, 'playerBullet');
-        };*/
-        //Enable physics for the playerBullets group
-        game.physics.arcade.enable(playerBullets);
-        //Iterates over each member of the playerBullets group and stops them from leaving map.  Also adds bounce and sets center for rotation
-        playerBullets.forEachAlive(function(playerBullet) {
-            playerBullet.body.collideWorldBounds = true;
-            playerBullet.body.bounce.x = 1;
-            playerBullet.body.bounce.y = 1;
-            playerBullet.anchor.setTo(0.5, 0.5);
-            playerBullet.body.velocity.x = (Math.floor(Math.random() * 500) - 250);
-            playerBullet.body.velocity.y = (Math.floor(Math.random() * 500) - 250);
-        });
-
         //Death particle emitter
         emitter = game.add.emitter(0, 0, 100);
         emitter.makeParticles(['deathZero', 'deathOne']);
@@ -197,10 +179,9 @@
         for (i = 0; i < maxPlayers; i++) {
             playerGuns.push(game.add.weapon(3, 'playerBullet'));
             playerGuns[i].fireRate = 500;
-            playerGuns[i].trackSprite(players[i], 15, -19);
+            playerGuns[i].trackSprite(playerList[i], 15, -25);
             playerGuns[i].bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
             playerGuns[i].bulletLifespan = 5000;
-            console.log(playerGuns[i]);
         };
 
         //Register cursor keys for player movement
@@ -217,18 +198,13 @@
     };
 
     function update() {
-        //spin bullets
-        playerBullets.forEachAlive(function(playerBullet) {
-            playerBullet.angle += 10;
-        });
-
-        //Iterate through each player's gun's bullets and change them
+        //Iterate through each player's gun's bullets and change them as defined below
         for (i = 0; i < playerGuns.length; i++) {
             playerGuns[i].bullets.forEachAlive(function(playerBullet) {
                 //Set up bullet collision events
                 game.physics.arcade.collide(playerShields, playerBullet);
                 game.physics.arcade.collide(playerBullet, pillars);
-                game.physics.arcade.collide(players, playerBullet, killPlayer, null, this);
+                game.physics.arcade.collide(playerList, playerBullet, killPlayer, null, this);
 
                 playerBullet.angle += 10;
                 playerBullet.body.bounce.x = 1;
@@ -238,8 +214,8 @@
         };
 
         //Collision with players and obstacles
-        game.physics.arcade.collide(players, pillars);
-        game.physics.arcade.collide(players, players);
+        game.physics.arcade.collide(playerList, pillars);
+        game.physics.arcade.collide(playerList, playerList);
 
         //Register mouse for aiming and firing
         mouse = game.input.mousePointer;
@@ -310,7 +286,7 @@
     /*Our custom code to handle game events */
 
     function spawnPlayer(playerColor) {
-
+        var player;
         /*Create player sprites based on color.  Sets start location, sprite, adds shield and sets respawn location on the event of death*/
         switch (playerColor) {
             case "red":
@@ -398,8 +374,7 @@
         emitter.start(true, 3000, null, 30);
         bullet.kill();
         //kill child 0 (the shield) to prevent 'phantom bounce'
-        console.log("bullet" + bullet + "shield" + player.children[0]);
-      /*  player.children["0"].kill();*/
+        player.children["0"].kill();
         player.kill();
         //Respawn after 5 seconds
         setTimeout(respawnPlayer, 5000, player);
@@ -531,20 +506,23 @@
         switch (currentPlayer.angle) {
             case -90:
                 currentGun.fireAngle = Phaser.ANGLE_LEFT;
-                currentGun.trackSprite(currentPlayer, -25, -15);
+                currentGun.trackSprite(currentPlayer, -30, -15);
                 break;
             case 90:
                 currentGun.fireAngle = Phaser.ANGLE_RIGHT;
-                currentGun.trackSprite(currentPlayer, 25, 15);
+                currentGun.trackSprite(currentPlayer, 30, 15);
                 break;
             case 0:
                 currentGun.fireAngle = Phaser.ANGLE_UP;
-                currentGun.trackSprite(currentPlayer, 15, -25);
+                currentGun.trackSprite(currentPlayer, 15, -30);
                 break;
-            case 180:
+            //-180 is DOWN. 180 is not.  Not sure why.
+            case -180:
+            default:
                 currentGun.fireAngle = Phaser.ANGLE_DOWN;
-                currentGun.trackSprite(currentPlayer, -15, 25);
+                currentGun.trackSprite(currentPlayer, -15, 30);
                 break;
+
         };
         currentGun.fire();
         explosion.play();
