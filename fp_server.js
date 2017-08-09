@@ -19,7 +19,7 @@ var playerID = 0,
     gameActive = 0;
 var maxPlayers = 4;
 
-var ballXLoc, ballYLoc;
+var ballXLoc, ballYLoc, ballCarried = 0;
 
 setupServer();
 
@@ -64,8 +64,18 @@ io.on('connection', function(socket) {
             io.emit('updatePlayer', update);
         };
     });
+
+    socket.on('ballCarrier', function(playerID) {
+        //Make sure that nobody else grabbed the ball, too.
+        if (ballCarried === 0) {
+            socket.emit('ballCarrier', playerID);
+            ballCarried = 1;
+        }
+    });
+
     socket.on('goal', function(playerID) {
         setTimeout(spawnBall, 5000);
+        ballCarried = 0;
         scoreList[playerID] += 1;
         io.emit('updateScoreBoard', scoreList);
     });
@@ -115,6 +125,7 @@ function setupServer() {
         gameActive = 0;
         freeIDList[i] = i;
         scoreList[i] = 0;
+        ballCarried = 0;
     };
 
 };

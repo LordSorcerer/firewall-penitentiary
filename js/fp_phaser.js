@@ -6,7 +6,8 @@ gameMusic.forEach(function(key) {
 });
 var explosion = new Audio('./assets/audio/explosion.mp3'),
     shatter = new Audio('./assets/audio/shatter.mp3'),
-    goalBleep = new Audio('./assets/audio/goalBleep.mp3');
+    goalBleep = new Audio('./assets/audio/goalBleep.mp3'),
+    ballBleep = new Audio('./assets/audio/ballBleep.mp3');
 var currentMusic = 0;
 var game, gameStatus, player, players, playerID = null,
     playerHasID = 0,
@@ -217,8 +218,8 @@ function update() {
     //Collision with players and obstacles
     game.physics.arcade.collide(playerList, pillars);
     game.physics.arcade.collide(playerList, playerList);
-    //A player grabbed the ball
-    game.physics.arcade.overlap(playerList, gameBall, ballCarrier, null, this);
+    //Make sure only the player using this instance of the client checks to grab the ball
+    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBall, ballRequest, null, this);
     //Check to see if a player has the ball and see if they score a goal
     game.physics.arcade.overlap(playerList, goals, checkGoal, null, this);
 
@@ -381,16 +382,22 @@ function respawnPlayer(player) {
 
 //Kills the player on contact with a bullet.  Now with fancy particle explosions!
 function killPlayer(player, bullet) {
+    //Get rid of the ball if the player has it
+    if (player.data.hasBall === 1) {
+        gameBall.destroy();
+        player.data.hasBall = 0;
+    };
     //Shatter sound effect
     shatter.play();
     //Explosion of binary 'gore'
     emitter.x = player.x;
     emitter.y = player.y;
     emitter.start(true, 3000, null, 30);
-
+    //Remove the bullet, too
     bullet.kill();
     //kill child 0 (the shield) to prevent 'phantom bounce'
     player.children["0"].kill();
+    //Finally, kill the player
     player.kill();
     //Respawn after 5 seconds
     setTimeout(respawnPlayer, 5000, player);
@@ -562,18 +569,25 @@ function highlightGoal() {
     }
 };
 
-function ballCarrier(player, gameBall) {
+//Sends a ball grab request emit to the server
+function ballRequest(player) {
+        socket.emit('ballCarrier', myPlayerUpdate.playerID);
+};
+
+//Upon receiving a ballCarrier emit from the server, give the right player the ball.
+function ballCarrier(playerID) {
     //Attach the ball as a child to the player
+    ballBleep.play();
     gameBall.x = 0;
     gameBall.y = 25;
     gameBall.anchor.setTo(0.5, 0.5);
-    player.addChild(gameBall);
-    player.data.hasBall = 1;
+    playerList[playerID].addChild(gameBall);
+    playerList[playerID].data.hasBall = 1;
 };
 
+//Checks to see if the player has the ball and the goal is active
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
-        console.log('gets here');
         text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
         text.anchor.setTo(0.5, 0.5);
         text.visible = true;
@@ -584,11 +598,10 @@ function checkGoal(player, goal) {
         player.data.hasBall = 0;
         goal.animations.play('flash');
         goalBleep.play();
-        console.log("Goal - playerID = ? " + myPlayerUpdate.playerID);
         socket.emit('goal', myPlayerUpdate.playerID);
         /*playerScoreDisplay = game.add.text(387, 576, player.data.goals, { font: "45px Orbitron", fill: "#bbb" });
         playerScoreDisplay.anchor.setTo(0.5, 0.5);*/
-    }
+    };
 };
 
 

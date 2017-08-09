@@ -73,6 +73,10 @@
             /*roomEntities.push(newEntity);*/
         });
 
+        socket.on('ballCarrier', function (playerID){
+            ballCarrier(playerID);
+        });
+
         socket.on('updateScoreBoard', function(newScoreList) {
             updateScoreBoard(newScoreList);
         });
