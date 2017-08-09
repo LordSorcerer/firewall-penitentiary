@@ -2,7 +2,7 @@
   "name": "firewall-penitentiary",
   "version": "1.0.0",
   "description": "Clean build of our practice multiplayer game",
-  "main": "phasertest01.js",
+  "main": "fp_server.js",
   "dependencies": {
     "express": "4.15.3",
     "socket.io": "2.0.3"
