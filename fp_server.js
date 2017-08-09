@@ -16,8 +16,9 @@ var playerID = 0,
     playerList = [],
     numPlayers = 0,
     gameActive = 0;
+var maxPlayers = 1;
 
-var maxPlayers = 4;
+var ballXLoc, ballYLoc;
 
 setupServer();
 
@@ -36,8 +37,8 @@ io.on('connection', function(socket) {
                 io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The final player has joined.  Ten seconds until game time." });
                 setTimeout(function() {
                     io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
-                    gameActive = 1;
-                }, 120);
+                    startGame();
+                }, 12000);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
@@ -64,7 +65,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('disconnect', function() {
-        //get the disconnected socket ID and remove it from the player list
+        //get the disconnected socket ID and remove it from the playerList
         var index = matchPlayerSocketID(socket.id);
         //must also get the player's ID so we can free it for use
         if (index != -1) {
@@ -79,6 +80,11 @@ io.on('connection', function(socket) {
         };
         console.info("Socket " + socket.id + " has disconnected.");
         io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Player#" + tempPlayerID + " has disconnected." });
+        //If there are no players connected, reset the game room
+        if (freeIDList.length === maxPlayers) {
+            gameActive = 0;
+            console.log("No players connected.  Resetting Game Room.");
+        };
     });
 });
 
@@ -87,11 +93,10 @@ server.listen(port, function() {
 });
 
 
-
+//Given a player's socket, return the index number in the playerList
 function matchPlayerSocketID(currentSocketID) {
     var ret = -1;
     for (i = 0; i < playerList.length; i++) {
-        console.log("ID: " + playerList[i].socketID + " id: " + currentSocketID);
         if (playerList[i].socketID == currentSocketID) {
             ret = i;
         };
@@ -106,3 +111,26 @@ function setupServer() {
     };
 
 };
+
+
+function startGame() {
+    gameActive = 1;
+    //starts the ball right in the middle of the game room
+    spawnEntity(385, 285, 'ball03');
+}
+
+function spawnBall() {
+    ballXLoc = randomIntFromInterval(100, 700) - 17;
+    ballYLoc = randomIntFromInterval(100, 500) - 17;
+    //emit the signal to spawn and entity(the ball at) x,y coordinates
+    spawnEntity(ballXLoc, ballYLoc, 'ball03');
+}
+
+
+function randomIntFromInterval(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function spawnEntity(x, y, name) {
+    io.emit('spawnEntity', { x, y, name });
+}

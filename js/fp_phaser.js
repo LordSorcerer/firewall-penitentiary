@@ -10,11 +10,15 @@ var currentMusic = 0;
 var game, gameStatus, player, players, playerID = null,
     playerHasID = 0,
     updatedPlayer;
-//Lists to define player avatar
+//Lists
 var playerShields = [],
     playerList = [],
     playerGuns = [],
-    playerShield, playerGun, pillars, gun, fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun, enableGameInput;
+    roomEntities = [],
+    playerShield, playerGun,
+    playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun,
+    pillars, gun, gameBall, newEntity,
+    fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, enableGameInput;
 //Constants!
 var maxPlayers = 4;
 
@@ -50,18 +54,18 @@ var myPlayerUpdate = {
 console.log(game);
 
 function preload() {
-    //Cancel pausing the game when focus is lost
+    //Don't pause the game when focus is lost
     game.stage.disableVisibilityChange = true;
     //Add in all the game assets we're going to use
-    game.load.image('map01', '../assets/map01small.jpg');
+
     game.load.image('map02', '../assets/map02.png');
     game.load.image('pillar', '../assets/pillar.png');
     game.load.image('deathZero', '../assets/deathZero.png');
     game.load.image('deathOne', '../assets/deathOne.png');
     game.load.image('deathTwo', '../assets/deathTwo.png');
     game.load.image('deathFive', '../assets/deathFive.png');
+    game.load.image('ball03', '../assets/ball03.png');
     game.load.spritesheet('goal', '../assets/goal.png', 100, 100);
-    game.load.spritesheet('gun_basic', '../assets/gun_basic.png', 8, 15);
     game.load.spritesheet('playerBullet', '../assets/playerBullet.png', 10, 10);
     game.load.spritesheet('shield_blue', '../assets/shield_blue.png', 32, 10);
     game.load.spritesheet('shield_red', '../assets/shield_red.png', 32, 10);
@@ -85,6 +89,7 @@ function create() {
     game.add.sprite(0, 0, 'map02');
     //Adds a group called goals and puts one in each corner
     goals = game.add.group();
+    //Create the four goals, setting their location and image rotation
     goalNW = goals.create(50, 50, 'goal');
     goalNW.anchor.setTo(0.5, 0.5);
     goalNW.angle = 90;
@@ -95,6 +100,18 @@ function create() {
     goalSE = goals.create(750, 550, 'goal');
     goalSE.anchor.setTo(0.5, 0.5);
     goalSE.angle = -90;
+    //Enable physics model for goals
+    game.physics.arcade.enable(goals);
+    //Take each goal and make it both immovable and use circle hit detection
+    goals.forEachAlive(function(goal) {
+        goal.body.immovable = true;
+        goal.body.isCircle = true;
+    });
+    goalNW.body.setCircle(64, -27, -27);
+    goalNE.body.setCircle(64, 0, -29);
+    goalSW.body.setCircle(64, -27, 0);
+    goalSE.body.setCircle(64, 0, 0);
+
 
     //Adds a group called pillars and then adds one in front of each player's base
     pillars = game.add.group();
@@ -110,7 +127,7 @@ function create() {
         pillar.body.immovable = true;
     });
 
-    //Death particle emitter
+    //Sets up the particle emitter to be used upon player death
     emitter = game.add.emitter(0, 0, 100);
     emitter.makeParticles(['deathZero', 'deathOne']);
     emitter.gravity = 0;
@@ -118,7 +135,7 @@ function create() {
 
     //Create a group for all the players
     players = game.add.group();
-    //loads the players onto the map
+    //loads the players onto the map, adds them to the players group and the playerList array
     playerRed = spawnPlayer("red");
     playerRed.data.fontColor = "red";
     playerList.push(playerRed);
@@ -136,7 +153,8 @@ function create() {
     playerList.push(playerGreen);
     players.add(playerGreen);
 
-    // adding weapon and a firebutton and having its movements track player
+    //Create one gun for each player in the game.
+    //playerGun: 3 shots on screen max, rate of fire: 2 per second, 5 second lifespan
 
     for (i = 0; i < maxPlayers; i++) {
         playerGuns.push(game.add.weapon(3, 'playerBullet'));
@@ -165,6 +183,9 @@ function update() {
     if (enableGameInput === 1) {
         game.input.enabled = true;
     }
+    /*  goals.forEachAlive(function(goal) {
+          game.debug.body(goal);
+      });*/
 
     //Iterate through each player's gun's bullets and change them as defined below
     for (i = 0; i < playerGuns.length; i++) {
@@ -184,6 +205,10 @@ function update() {
     //Collision with players and obstacles
     game.physics.arcade.collide(playerList, pillars);
     game.physics.arcade.collide(playerList, playerList);
+    //A player grabbed the ball
+    game.physics.arcade.overlap(playerList, gameBall, ballCarrier, null, this);
+    //Check to see if a player has the ball and see if they score a goal
+    game.physics.arcade.overlap(playerList, goals, checkGoal, null, this);
 
     //Register mouse for aiming and firing
     mouse = game.input.mousePointer;
@@ -255,7 +280,7 @@ function update() {
         myPlayerUpdate.y = playerList[myPlayerUpdate.playerID].y;
 
         //Updates the server with the player's current position, movement and fire requests.  Contained in fp_client.js
-       sendUpdate(myPlayerUpdate);
+        sendUpdate(myPlayerUpdate);
     };
 }
 
@@ -505,4 +530,41 @@ function playerFire(update) {
     };
     currentGun.fire();
     explosion.play();
+};
+
+
+function highlightGoal() {
+    if (gameBall.x < 400) {
+        if (gameBall.y < 300) {
+            goalSE.frame = 1;
+        } else {
+            goalNE.frame = 1;
+        }
+    } else {
+        if (ballYLoc < 300) {
+            goalSW.frame = 1;
+        } else {
+            goalNW.frame = 1;
+
+        }
+    }
+}
+
+function ballCarrier(player, gameBall) {
+    //Attach the ball as a child to the player
+    gameBall.x = 0;
+    gameBall.y = 25;
+    gameBall.anchor.setTo(0.5, 0.5);
+    player.addChild(gameBall);
+    player.data.hasBall = 1;
+}
+
+function checkGoal(player, goal) {
+    if (player.data.hasBall === 1 && goal.frame === 1) {
+        text = game.add.text(game.world.centerX, game.world.centerY, "Packet Delivered...\naka..GOOAALLLL!!!!", { font: "55px Orbitron", fill: "#bbb", align: "center" });
+        text.anchor.setTo(0.5, 0.5);
+        text.visible = false;
+        playerScoreDisplay = game.add.text(387, 576, player.data.goals, { font: "45px Orbitron", fill: "#bbb" });
+        playerScoreDisplay.anchor.setTo(0.5, 0.5);
+    }
 }

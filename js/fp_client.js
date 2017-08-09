@@ -1,12 +1,10 @@
-    
-
     //Networking Stuff
-    
-//Updates the server with the player's current position, movement and fire requests
-function sendUpdate (myPlayerUpdate) {
+
+    //Updates the server with the player's current position, movement and fire requests
+    function sendUpdate(myPlayerUpdate) {
 
         socket.emit('updatePlayer', myPlayerUpdate);
-}
+    }
 
 
 
@@ -45,7 +43,6 @@ function sendUpdate (myPlayerUpdate) {
         });
 
         socket.on('music', function(track) {
-            console.log("Got music req");
             gameMusic[currentMusic].pause();
             gameMusic[track].play();
             currentMusic = track;
@@ -56,12 +53,24 @@ function sendUpdate (myPlayerUpdate) {
             fontColor = newMessage.fontColor;
             message = newMessage.message;
             htmlChatWindow.append("<li><span style='color:" + fontColor + ";'>" + sender + ": </span>" + message + "</li>");
-            if (sender === "Server") {
+            if (sender === "Serfver") {
                 responsiveVoice.speak(message);
             };
             //Scrolls to the newest message
             htmlChatWindow.animate({ scrollTop: htmlChatWindow.prop('scrollHeight') }, 0);
             enableGameInput = 1;
+        });
+
+        socket.on('spawnEntity', function(entity) {
+            newEntity = game.add.sprite(entity.x, entity.y, entity.name);
+            game.physics.arcade.enable(newEntity);
+            newEntity.body.isCircle = true;
+            if (entity.name === 'ball03') {
+                gameBall = newEntity;
+                highlightGoal();
+            };
+
+            /*roomEntities.push(newEntity);*/
         });
 
         $("#sendChat").on("click", function() {
