@@ -17,7 +17,7 @@ var playerID = 0,
     scoreList = [],
     numPlayers = 0,
     gameActive = 0;
-var maxPlayers = 1;
+var maxPlayers = 4;
 
 var ballXLoc, ballYLoc;
 
@@ -39,7 +39,7 @@ io.on('connection', function(socket) {
                 setTimeout(function() {
                     io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     startGame();
-                }, 1200);
+                }, 12000);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
