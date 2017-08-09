@@ -8,7 +8,7 @@ app.use('/assets', express.static(__dirname + '/assets'));
 app.use('/js', express.static(__dirname + '/js'));
 
 app.get('/', function(req, res) {
-    res.sendFile(__dirname + '/phasertest01.html');
+    res.sendFile(__dirname + '/index.html');
 });
 
 var playerID = 0,
@@ -37,7 +37,7 @@ io.on('connection', function(socket) {
                 setTimeout(function() {
                     io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     gameActive = 1;
-                }, 12000);
+                }, 120);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
@@ -83,8 +83,7 @@ io.on('connection', function(socket) {
 });
 
 server.listen(port, function() {
-    console.log("Firewall Penitentiary Server v1.0  Listening on Port#: " + port);
-    console.log("FreeIDList(" + freeIDList.length + " slot(s) available): " + freeIDList);
+    console.log("Firewall Penitentiary Server v1.0  Listening on Port#: " + port + "\nFreeIDList(" + freeIDList.length + " slot(s) available): " + freeIDList);
 });
 
 
@@ -104,6 +103,6 @@ function matchPlayerSocketID(currentSocketID) {
 function setupServer() {
     for (i = 0; i < maxPlayers; i++) {
         freeIDList.push(i);
-    }
+    };
 
-}
+};

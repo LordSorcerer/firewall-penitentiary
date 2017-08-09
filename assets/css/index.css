@@ -1,0 +1,71 @@
+    body {
+        font-family: 'Audiowide', cursive;
+        background: radial-gradient(circle, black, #0282ff, black);
+        display: flex;
+
+        margin-bottom: 50px;
+    }
+
+    .wrapper {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .header {
+        color: #17206b;
+        /*text-shadow: 5px 3px 5px #51dfff;*/
+        text-shadow: 0 0 0.5em #51dfff, 0 0 0.5em #51dfff, 0 0 0.5em #51dfff;
+        text-align: center;
+        font-size: 25px;
+    }
+
+    canvas {
+        text-align: center;
+        margin: 0 auto;
+        /*box-shadow: 5px 5px 5px #17206b;*/
+        box-shadow: 0 0 1em #51dfff, 0 0 1em #51dfff, 0 0 1em #51dfff;
+    }
+
+    #chatWindow {
+        background-color: black;
+        color: white;
+        width: 75%;
+        height: 150px;
+        margin: 30px auto;
+        padding: 10px;
+        overflow: auto;
+        box-shadow: 0 0 1em #51dfff, 0 0 1em #51dfff, 0 0 1em #51dfff;
+    }
+
+    #chatBar {
+        margin: 10px auto;
+        text-align: center;
+    }
+
+    #message {
+        margin: 10px auto;
+    }
+
+    #sendChat {
+        margin: 10px auto;
+        width: 10%;
+    }
+
+    table {
+        font-size: 20px;
+        border: 2px solid #dbdbdb;
+        background-color: black;
+        box-sizing: border-box;
+        width: 300px;
+        float: left;
+        margin-top: 20px;
+        margin-left: 30px;
+        border-collapse: separate;
+        border-spacing: 10px;
+    }
+
+    th,
+    td {
+        text-align: center;
+        color: #dbdbdb;
+    }

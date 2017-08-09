@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Firewall Penitentiary</title>
+    <link href="https://fonts.googleapis.com/css?family=Orbitron" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Audiowide" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="./assets/css/index.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- Text to voice API -->
+    <script type="text/javascript" src="./js/responsiveVoice.js"></script>
+    <script type="text/javascript" src="./js/phaser.min.js"></script>
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="header">
+            <h1>Firewall Penitentiary</h1>
+        </div>
+        <div id="mainScreen">
+        </div>
+        <div>
+            <ul id="chatWindow"></ul>
+            <form id="chatBar">
+                <input id="message" type="text">
+                <button id="sendChat" value="Submit">Send</button>
+            </form>
+        </div>
+        <table>
+            <tr>
+                <th>
+                    <font color="red">Red</font>
+                </th>
+                <th>
+                    <font color="yellow">Yellow</font>
+                </th>
+                <th>
+                    <font color="blue">Blue</font>
+                </th>
+                <th>
+                    <font color="green">Green</font>
+                </th>
+            </tr>
+            <tr>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+        </table>
+    </div>
+     <script type="text/javascript" src="./js/fp_client.js">
+    </script>
+    <script type="text/javascript" src="./js/fp_phaser.js">
+    </script>
+   
+</body>
+
+</html>
