@@ -5,7 +5,8 @@ gameMusic.forEach(function(key) {
     key.volume = 0.35;
 });
 var explosion = new Audio('./assets/audio/explosion.mp3'),
-    shatter = new Audio('./assets/audio/shatter.mp3');
+    shatter = new Audio('./assets/audio/shatter.mp3'),
+    goalBleep = new Audio('./assets/audio/goalBleep.mp3');
 var currentMusic = 0;
 var game, gameStatus, player, players, playerID = null,
     playerHasID = 0,
@@ -15,6 +16,7 @@ var playerShields = [],
     playerList = [],
     playerGuns = [],
     roomEntities = [],
+    scoreList = [0, 0, 0, 0],
     playerShield, playerGun,
     playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun,
     pillars, gun, gameBall, newEntity,
@@ -22,9 +24,14 @@ var playerShields = [],
 //Constants!
 var maxPlayers = 4;
 
+//JQuery html pointers
 var htmlMessage = $("#message"),
     htmlChatWindow = $("#chatWindow"),
-    htmlMainScreen = $("#mainScreen");
+    htmlMainScreen = $("#mainScreen"),
+    htmlScoreRed = $("#scoreRed"),
+    htmlScoreYellow = $("#scoreYellow"),
+    htmlScoreBlue = $("#scoreBlue"),
+    htmlScoreGreen = $("#scoreGreen");
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, 'mainScreen', {
     preload: preload,
@@ -57,7 +64,6 @@ function preload() {
     //Don't pause the game when focus is lost
     game.stage.disableVisibilityChange = true;
     //Add in all the game assets we're going to use
-
     game.load.image('map02', '../assets/map02.png');
     game.load.image('pillar', '../assets/pillar.png');
     game.load.image('deathZero', '../assets/deathZero.png');
@@ -104,6 +110,7 @@ function create() {
     game.physics.arcade.enable(goals);
     //Take each goal and make it both immovable and use circle hit detection
     goals.forEachAlive(function(goal) {
+        goal.animations.add('flash', [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], 7, false);
         goal.body.immovable = true;
         goal.body.isCircle = true;
     });
@@ -112,6 +119,11 @@ function create() {
     goalSW.body.setCircle(64, -27, 0);
     goalSE.body.setCircle(64, 0, 0);
 
+    //Scorekeeping text in the bases
+    baseTextN = game.add.text(380, 5, "0", { font: "40px Orbitron", fill: "#FF0000", align: "center" });
+    baseTextE = game.add.text(770, 300, "0", { font: "40px Orbitron", fill: "#FFFF00", align: "center" });
+    baseTextS = game.add.text(380, 550, "0", { font: "40px Orbitron", fill: "#0000FF", align: "center" });
+    baseTextW = game.add.text(20, 300, "0", { font: "40px Orbitron", fill: "#00FF00", align: "center" });
 
     //Adds a group called pillars and then adds one in front of each player's base
     pillars = game.add.group();
@@ -541,14 +553,14 @@ function highlightGoal() {
             goalNE.frame = 1;
         }
     } else {
-        if (ballYLoc < 300) {
+        if (gameBall.y < 300) {
             goalSW.frame = 1;
         } else {
             goalNW.frame = 1;
 
         }
     }
-}
+};
 
 function ballCarrier(player, gameBall) {
     //Attach the ball as a child to the player
@@ -557,14 +569,37 @@ function ballCarrier(player, gameBall) {
     gameBall.anchor.setTo(0.5, 0.5);
     player.addChild(gameBall);
     player.data.hasBall = 1;
-}
+};
 
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
-        text = game.add.text(game.world.centerX, game.world.centerY, "Packet Delivered...\naka..GOOAALLLL!!!!", { font: "55px Orbitron", fill: "#bbb", align: "center" });
+        console.log('gets here');
+        text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
         text.anchor.setTo(0.5, 0.5);
-        text.visible = false;
-        playerScoreDisplay = game.add.text(387, 576, player.data.goals, { font: "45px Orbitron", fill: "#bbb" });
-        playerScoreDisplay.anchor.setTo(0.5, 0.5);
+        text.visible = true;
+        setTimeout(function() {
+            text.visible = false;
+        }, 3000);
+        gameBall.destroy();
+        player.data.hasBall = 0;
+        goal.animations.play('flash');
+        goalBleep.play();
+        console.log("Goal - playerID = ? " + myPlayerUpdate.playerID);
+        socket.emit('goal', myPlayerUpdate.playerID);
+        /*playerScoreDisplay = game.add.text(387, 576, player.data.goals, { font: "45px Orbitron", fill: "#bbb" });
+        playerScoreDisplay.anchor.setTo(0.5, 0.5);*/
     }
-}
+};
+
+
+function updateScoreBoard(newScoreList) {
+    scoreList = newScoreList;
+    htmlScoreRed.text(scoreList[0]);
+    htmlScoreYellow.text(scoreList[1]);
+    htmlScoreBlue.text(scoreList[2]);
+    htmlScoreGreen.text(scoreList[3]);
+    baseTextN.text = scoreList[0];
+    baseTextE.text = scoreList[1];
+    baseTextS.text = scoreList[2];
+    baseTextW.text = scoreList[3];
+};

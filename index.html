@@ -18,17 +18,7 @@
     <div class="wrapper">
         <div class="header">
             <h1>Firewall Penitentiary</h1>
-        </div>
-        <div id="mainScreen">
-        </div>
-        <div>
-            <ul id="chatWindow"></ul>
-            <form id="chatBar">
-                <input id="message" type="text">
-                <button id="sendChat" value="Submit">Send</button>
-            </form>
-        </div>
-        <table>
+            <table>
             <tr>
                 <th>
                     <font color="red">Red</font>
@@ -44,12 +34,22 @@
                 </th>
             </tr>
             <tr>
-                <td>0</td>
-                <td>0</td>
-                <td>0</td>
-                <td>0</td>
+                <td id='scoreRed'>0</td>
+                <td id='scoreYellow'>0</td>
+                <td id='scoreBlue'>0</td>
+                <td id='scoreGreen'>0</td>
             </tr>
         </table>
+        </div>
+        <div id="mainScreen">
+        </div>
+        <div>
+            <ul id="chatWindow"></ul>
+            <form id="chatBar">
+                <input id="message" type="text">
+                <button id="sendChat" value="Submit">Send</button>
+            </form>
+        </div>
     </div>
     <script type="text/javascript" src="./js/fp_phaser.js">
     </script>

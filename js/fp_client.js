@@ -73,6 +73,10 @@
             /*roomEntities.push(newEntity);*/
         });
 
+        socket.on('updateScoreBoard', function(newScoreList) {
+            updateScoreBoard(newScoreList);
+        });
+
         $("#sendChat").on("click", function() {
             event.preventDefault();
             /* game.stage.focus();

@@ -14,6 +14,7 @@ app.get('/', function(req, res) {
 var playerID = 0,
     freeIDList = [],
     playerList = [],
+    scoreList = [],
     numPlayers = 0,
     gameActive = 0;
 var maxPlayers = 1;
@@ -38,7 +39,7 @@ io.on('connection', function(socket) {
                 setTimeout(function() {
                     io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     startGame();
-                }, 12000);
+                }, 1200);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
@@ -63,7 +64,11 @@ io.on('connection', function(socket) {
             io.emit('updatePlayer', update);
         };
     });
-
+    socket.on('goal', function(playerID) {
+        setTimeout(spawnBall, 5000);
+        scoreList[playerID] += 1;
+        io.emit('updateScoreBoard', scoreList);
+    });
     socket.on('disconnect', function() {
         //get the disconnected socket ID and remove it from the playerList
         var index = matchPlayerSocketID(socket.id);
@@ -82,7 +87,7 @@ io.on('connection', function(socket) {
         io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Player#" + tempPlayerID + " has disconnected." });
         //If there are no players connected, reset the game room
         if (freeIDList.length === maxPlayers) {
-            gameActive = 0;
+            setupServer();
             console.log("No players connected.  Resetting Game Room.");
         };
     });
@@ -107,11 +112,12 @@ function matchPlayerSocketID(currentSocketID) {
 //Create a number of playerIDs equal to maxPlayers and put them in the freeIDList
 function setupServer() {
     for (i = 0; i < maxPlayers; i++) {
-        freeIDList.push(i);
+        gameActive = 0;
+        freeIDList[i] = i;
+        scoreList[i] = 0;
     };
 
 };
-
 
 function startGame() {
     gameActive = 1;
