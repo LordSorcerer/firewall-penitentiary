@@ -218,24 +218,16 @@ function update() {
     //Collision with players and obstacles
     game.physics.arcade.collide(playerList, pillars);
     game.physics.arcade.collide(playerList, playerList);
+    //Client specific physics checks - mishandling of these is what lead to the multi-ball spawn issue.
     //Make sure only the player using this instance of the client checks to grab the ball.  Each player will do that on their own screen.
     game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBall, ballRequest, null, this);
-    //Check to see if a player has the ball and see if they score a goal
-    game.physics.arcade.overlap(playerList, goals, checkGoal, null, this);
-
-    //Register mouse for aiming and firing
-    mouse = game.input.mousePointer;
+    //Make sure only the player using this instance of the client checks to see if they've scored a goal.  Each player will do that on their own screen.
+    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], goals, checkGoal, null, this);
 
     //Stop the following keys from propagating up to the browser - is this necessary?
     game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
 
     /*Movement event handlers. Note: If you don't account for diagonals first, cardinals will override and only move you in one direction, not two.*/
-
-    //Show player shield and body hitboxes
-    /*playerList.forEach(function(player) {
-        game.debug.body(player);
-        game.debug.body(player.children["0"]);
-    });*/
 
     if (keyW.isDown && keyA.isDown || cursors.up.isDown && cursors.left.isDown) {
         //UP LEFT
@@ -573,7 +565,7 @@ function highlightGoal() {
 
 //Sends a ball grab request emit to the server
 function ballRequest(player) {
-        socket.emit('ballCarrier', myPlayerUpdate.playerID);
+    socket.emit('ballCarrier', myPlayerUpdate.playerID);
 };
 
 //Upon receiving a ballCarrier emit from the server, give the right player the ball.
@@ -590,6 +582,8 @@ function ballCarrier(playerID) {
 //Checks to see if the player has the ball and the goal is active
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
+        player.data.hasBall = 0;
+        goal.animations.play('flash');
         //Show the goal text for 3 seconds and then hide it again
         text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
         text.anchor.setTo(0.5, 0.5);
@@ -597,11 +591,7 @@ function checkGoal(player, goal) {
         setTimeout(function() {
             text.visible = false;
         }, 3000);
-        //Remove the ball from the player
-      /*  player.children["3"].destroy();*/
         gameBall.destroy();
-        player.data.hasBall = 0;
-        goal.animations.play('flash');
         goalBleep.play();
         socket.emit('goal', myPlayerUpdate.playerID);
     };

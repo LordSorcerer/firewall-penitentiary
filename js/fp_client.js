@@ -78,16 +78,12 @@
         });
 
         socket.on('updateScoreBoard', function(newScoreList) {
+            console.log(newScoreList);
             updateScoreBoard(newScoreList);
         });
 
         $("#sendChat").on("click", function() {
             event.preventDefault();
-            /* game.stage.focus();
-             console.log(game.input.enabled);
-             game.input.enabled = true;
-             console.log(game.input.enabled);*/
-            //Make sure the user isn't entering a blank line
             if (htmlMessage.val().trim() !== "") {
                 chatMessage.sender = "Player #" + myPlayerUpdate.playerID;
                 chatMessage.fontColor = playerList[myPlayerUpdate.playerID].data.fontColor;

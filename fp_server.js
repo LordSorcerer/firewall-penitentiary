@@ -77,6 +77,7 @@ io.on('connection', function(socket) {
         setTimeout(spawnBall, 5000);
         ballCarried = 0;
         scoreList[playerID] += 1;
+        console.log(scoreList);
         io.emit('updateScoreBoard', scoreList);
     });
 
