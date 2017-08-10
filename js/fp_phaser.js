@@ -543,15 +543,17 @@ function playerFire(update) {
 
     };
     currentGun.fire();
+    explosion.stop();
     explosion.play();
 };
 
 
 function highlightGoal() {
     //force the goals to reset, just to be sure
-    goals.forEachAlive(goal) {
+    goals.forEachAlive(function(goal) {
         goal.frame = 0;
-    }
+    });
+
     if (gameBall.x < 400) {
         if (gameBall.y < 300) {
             goalSE.frame = 1;
@@ -563,7 +565,6 @@ function highlightGoal() {
             goalSW.frame = 1;
         } else {
             goalNW.frame = 1;
-
         }
     }
 };
