@@ -218,7 +218,7 @@ function update() {
     //Collision with players and obstacles
     game.physics.arcade.collide(playerList, pillars);
     game.physics.arcade.collide(playerList, playerList);
-    //Make sure only the player using this instance of the client checks to grab the ball
+    //Make sure only the player using this instance of the client checks to grab the ball.  Each player will do that on their own screen.
     game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBall, ballRequest, null, this);
     //Check to see if a player has the ball and see if they score a goal
     game.physics.arcade.overlap(playerList, goals, checkGoal, null, this);
@@ -386,6 +386,8 @@ function killPlayer(player, bullet) {
     if (player.data.hasBall === 1) {
         gameBall.destroy();
         player.data.hasBall = 0;
+        //And make a new one
+        gameBall = game.add.sprite(player.x, player.y, 'ball03');
     };
     //Shatter sound effect
     shatter.play();
@@ -588,19 +590,20 @@ function ballCarrier(playerID) {
 //Checks to see if the player has the ball and the goal is active
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
+        //Show the goal text for 3 seconds and then hide it again
         text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
         text.anchor.setTo(0.5, 0.5);
         text.visible = true;
         setTimeout(function() {
             text.visible = false;
         }, 3000);
+        //Remove the ball from the player
+      /*  player.children["3"].destroy();*/
         gameBall.destroy();
         player.data.hasBall = 0;
         goal.animations.play('flash');
         goalBleep.play();
         socket.emit('goal', myPlayerUpdate.playerID);
-        /*playerScoreDisplay = game.add.text(387, 576, player.data.goals, { font: "45px Orbitron", fill: "#bbb" });
-        playerScoreDisplay.anchor.setTo(0.5, 0.5);*/
     };
 };
 

@@ -66,9 +66,9 @@ io.on('connection', function(socket) {
     });
 
     socket.on('ballCarrier', function(playerID) {
-        //Make sure that nobody else grabbed the ball, too.
+        //Once a ballCarrier emit is received, ignore requests until a goal is scored
         if (ballCarried === 0) {
-            socket.emit('ballCarrier', playerID);
+            io.emit('ballCarrier', playerID);
             ballCarried = 1;
         }
     });
@@ -79,6 +79,7 @@ io.on('connection', function(socket) {
         scoreList[playerID] += 1;
         io.emit('updateScoreBoard', scoreList);
     });
+
     socket.on('disconnect', function() {
         //get the disconnected socket ID and remove it from the playerList
         var index = matchPlayerSocketID(socket.id);
