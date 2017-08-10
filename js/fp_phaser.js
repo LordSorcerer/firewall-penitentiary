@@ -380,14 +380,8 @@ function killPlayer(player, bullet) {
     if (player.data.hasBall === 1) {
         gameBall.destroy();
         player.data.hasBall = 0;
-        //Let the server know that the ball carrier is dead so it can listen to ballRequests again
-        socket.emit('ballCarrierKilled');
-        //And make a new one, adding it to the gameBalls group
-        gameBall = game.add.sprite(player.x + 15, player.y + 15, 'ball03');
-        game.physics.arcade.enable(gameBall);
-        gameBall.body.isCircle = true;
-        console.log(gameBall);
-        gameBalls.add(gameBall);
+        //Let the server know that the ball carrier is dead so it can listen to ballRequests again and make a new ball on the same spot
+        socket.emit('ballCarrierKilled', { x: player.x, y: player.y });
     };
     //Shatter sound effect
     shatter.play();
@@ -600,6 +594,7 @@ function checkGoal(player, goal) {
 
 //Checks to see if the player has the ball and the goal is active
 function scoreGoal(player) {
+    player.data.hasBall = 0;
     //Destroy the ball
     gameBall.destroy();
     console.log(gameBalls);

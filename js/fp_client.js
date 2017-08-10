@@ -33,6 +33,11 @@
             //Make sure we're updating the right player and gun
             currentPlayer = playerList[update.playerID];
             currentGun = playerGuns[update.playerID];
+            //Update player's location on other clients' screens
+            if (update.playerID !== myPlayerUpdate.playerID) {
+                currentPlayer.x = update.x;
+                currentPlayer.y = update.y;
+            }
             //Dead players shouldn't be updating themselves... unless they're zombies
             if (currentPlayer.alive === true) {
                 if (update.fire === 1) {

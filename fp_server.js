@@ -73,8 +73,10 @@ io.on('connection', function(socket) {
         }
     });
 
-    socket.on('ballCarrierKilled', function (){
+    socket.on('ballCarrierKilled', function (loc){
         ballCarried = 0;
+        //Send the new ball location to the players
+        spawnEntity(loc.x, loc.y, 'ball03');
     });
 
     //Someone scored a goal.  Emit this information to each client.
