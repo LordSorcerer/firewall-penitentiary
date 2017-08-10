@@ -605,7 +605,7 @@ function scoreGoal(player) {
     }, 3000);
     //Play sound effect and flash the goal on and off
     goalBleep.play();
-    goals.forEachAlive(function(goal)) {
+    goals.forEachAlive(function(goal) {
         if (goal.frame === 1) {
             goal.animations.play('flash');
         }
