@@ -79,6 +79,7 @@
 
         socket.on('scoreGoal', function(score) {
             scoreGoal(score.playerID);
+             console.log(score.scoreList);
             updateScoreBoard(score.scoreList);
         });
 

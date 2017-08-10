@@ -587,13 +587,13 @@ function ballCarrier(playerID) {
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
         player.data.hasBall = 0;
-        socket.emit('scoreGoal', myPlayerUpdate.playerID);
+        socket.emit('scoreGoal', myPlayerUpdate.playerID, goal);
 
     };
 }
 
 //Checks to see if the player has the ball and the goal is active
-function scoreGoal(player, goal) {
+function scoreGoal(player) {
     //Destroy the ball
     gameBall.destroy();
     //Show the goal text for 3 seconds and then hide it again
@@ -605,7 +605,13 @@ function scoreGoal(player, goal) {
     }, 3000);
     //Play sound effect and flash the goal on and off
     goalBleep.play();
-    goal.animations.play('flash');
+    goals.forEachAlive(function(goal)) {
+        if (goal.frame === 1) {
+            goal.animations.play('flash');
+        }
+
+    });
+
 
 };
 

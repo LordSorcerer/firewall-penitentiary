@@ -79,6 +79,7 @@ io.on('connection', function(socket) {
         ballCarried = 0;
         scoreList[playerID] += 1;
         console.log(scoreList);
+        //Pass the player ID and the scoreList to run scoreGoal() and updateScoreBoard()
         io.emit('scoreGoal', {playerID, scoreList});
     });
 
