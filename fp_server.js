@@ -79,7 +79,7 @@ io.on('connection', function(socket) {
         ballCarried = 0;
         scoreList[playerID] += 1;
         console.log(scoreList);
-        io.emit('scoreGoal', playerID, scoreList);
+        io.emit('scoreGoal', {playerID, scoreList});
     });
 
     socket.on('disconnect', function() {

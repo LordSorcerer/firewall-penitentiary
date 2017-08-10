@@ -77,9 +77,9 @@
             ballCarrier(playerID);
         });
 
-        socket.on('scoreGoal', function(playerID, newScoreList) {
-            scoreGoal(playerID);
-            updateScoreBoard(newScoreList);
+        socket.on('scoreGoal', function(score) {
+            scoreGoal(score.playerID);
+            updateScoreBoard(score.scoreList);
         });
 
         $("#sendChat").on("click", function() {
