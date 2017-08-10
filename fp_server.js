@@ -65,20 +65,21 @@ io.on('connection', function(socket) {
         };
     });
 
+    //Once a ballCarrier emit is received, ignore requests until a goal is scored
     socket.on('ballCarrier', function(playerID) {
-        //Once a ballCarrier emit is received, ignore requests until a goal is scored
         if (ballCarried === 0) {
             io.emit('ballCarrier', playerID);
             ballCarried = 1;
         }
     });
 
-    socket.on('goal', function(playerID) {
+    //Someone scored a goal.  Emit this information to each client.
+    socket.on('scoreGoal', function(playerID) {
         setTimeout(spawnBall, 5000);
         ballCarried = 0;
         scoreList[playerID] += 1;
         console.log(scoreList);
-        io.emit('updateScoreBoard', scoreList);
+        io.emit('scoreGoal', playerID, scoreList);
     });
 
     socket.on('disconnect', function() {

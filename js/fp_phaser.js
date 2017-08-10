@@ -380,6 +380,7 @@ function killPlayer(player, bullet) {
         player.data.hasBall = 0;
         //And make a new one
         gameBall = game.add.sprite(player.x, player.y, 'ball03');
+
     };
     //Shatter sound effect
     shatter.play();
@@ -547,6 +548,10 @@ function playerFire(update) {
 
 
 function highlightGoal() {
+    //force the goals to reset, just to be sure
+    goals.forEachAlive(goal) {
+        goal.frame = 0;
+    }
     if (gameBall.x < 400) {
         if (gameBall.y < 300) {
             goalSE.frame = 1;
@@ -579,24 +584,28 @@ function ballCarrier(playerID) {
     playerList[playerID].data.hasBall = 1;
 };
 
-//Checks to see if the player has the ball and the goal is active
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
-        player.data.hasBall = 0;
-        goal.animations.play('flash');
-        //Show the goal text for 3 seconds and then hide it again
-        text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
-        text.anchor.setTo(0.5, 0.5);
-        text.visible = true;
-        setTimeout(function() {
-            text.visible = false;
-        }, 3000);
-        gameBall.destroy();
-        goalBleep.play();
-        socket.emit('goal', myPlayerUpdate.playerID);
+        socket.emit('scoreGoal', myPlayerUpdate.playerID);
     };
-};
+}
 
+//Checks to see if the player has the ball and the goal is active
+function scoreGoal(player, goal) {
+    //Show the goal text for 3 seconds and then hide it again
+    text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
+    text.anchor.setTo(0.5, 0.5);
+    text.visible = true;
+    setTimeout(function() {
+        text.visible = false;
+    }, 3000);
+    //Play sound effect and flash the goal on and off
+    goalBleep.play();
+    goal.animations.play('flash');
+    //remove the ball from the player and the game world
+    player.data.hasBall = 0;
+    gameBall.destroy();
+};
 
 function updateScoreBoard(newScoreList) {
     scoreList = newScoreList;

@@ -73,12 +73,12 @@
             /*roomEntities.push(newEntity);*/
         });
 
-        socket.on('ballCarrier', function (playerID){
+        socket.on('ballCarrier', function(playerID) {
             ballCarrier(playerID);
         });
 
-        socket.on('updateScoreBoard', function(newScoreList) {
-            console.log(newScoreList);
+        socket.on('scoreGoal', function(playerID, newScoreList) {
+            scoreGoal(playerID);
             updateScoreBoard(newScoreList);
         });
 
