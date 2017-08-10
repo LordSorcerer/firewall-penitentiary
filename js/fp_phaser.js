@@ -111,6 +111,7 @@ function create() {
     game.physics.arcade.enable(goals);
     //Take each goal and make it both immovable and use circle hit detection
     goals.forEachAlive(function(goal) {
+        goal.data.active = 0;
         goal.animations.add('flash', [0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], 7, false);
         goal.body.immovable = true;
         goal.body.isCircle = true;
@@ -548,21 +549,20 @@ function playerFire(update) {
 
 
 function highlightGoal() {
-    //force the goals to reset, just to be sure
-    goals.forEachAlive(function(goal) {
-        goal.frame = 0;
-    });
-
     if (gameBall.x < 400) {
         if (gameBall.y < 300) {
+            goalSE.data.active = 1;
             goalSE.frame = 1;
         } else {
+            goalNE.data.active = 1;
             goalNE.frame = 1;
         }
     } else {
         if (gameBall.y < 300) {
+            goalSW.data.active = 1;
             goalSW.frame = 1;
         } else {
+            goalNW.data.active = 1;
             goalNW.frame = 1;
         }
     }
@@ -585,10 +585,9 @@ function ballCarrier(playerID) {
 };
 
 function checkGoal(player, goal) {
-    if (player.data.hasBall === 1 && goal.frame === 1) {
+    if (player.data.hasBall === 1 && goal.data.active === 1) {
         player.data.hasBall = 0;
-        socket.emit('scoreGoal', myPlayerUpdate.playerID, goal);
-
+        socket.emit('scoreGoal', myPlayerUpdate.playerID);
     };
 }
 
@@ -606,13 +605,13 @@ function scoreGoal(player) {
     //Play sound effect and flash the goal on and off
     goalBleep.play();
     goals.forEachAlive(function(goal) {
-        if (goal.frame === 1) {
+        //Turn off all the goals and flash the one that was active
+        if (goal.data.active === 1) {
+            goal.data.active = 0;
             goal.animations.play('flash');
-        }
+        };
 
     });
-
-
 };
 
 function updateScoreBoard(newScoreList) {
