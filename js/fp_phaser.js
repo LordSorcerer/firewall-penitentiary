@@ -543,7 +543,6 @@ function playerFire(update) {
 
     };
     currentGun.fire();
-    explosion.stop();
     explosion.play();
 };
 
@@ -587,12 +586,16 @@ function ballCarrier(playerID) {
 
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.frame === 1) {
+        player.data.hasBall = 0;
         socket.emit('scoreGoal', myPlayerUpdate.playerID);
+
     };
 }
 
 //Checks to see if the player has the ball and the goal is active
 function scoreGoal(player, goal) {
+    //Destroy the ball
+    gameBall.destroy();
     //Show the goal text for 3 seconds and then hide it again
     text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
     text.anchor.setTo(0.5, 0.5);
@@ -603,9 +606,7 @@ function scoreGoal(player, goal) {
     //Play sound effect and flash the goal on and off
     goalBleep.play();
     goal.animations.play('flash');
-    //remove the ball from the player and the game world
-    player.data.hasBall = 0;
-    gameBall.destroy();
+
 };
 
 function updateScoreBoard(newScoreList) {
