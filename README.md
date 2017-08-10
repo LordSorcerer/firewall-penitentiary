@@ -6,3 +6,20 @@ Our story focuses on the fate of one such 'virtual prison,' Firewall 5 Penitenti
 
 Controls
 ---------
+W / Up arrow: Moves you north (up)
+A / Left arrow: Moves you west (left)
+S / Down arrow: Moves you south (down)
+E / Right arrow: Moves you east (right)
+
+Spacebar: Fires your weapon
+Shift: Enables strafe mode (stops your avatar from changing facing while moving)
+
+
+Network Play
+-------------
+Once all four players have joined (by navigating to the game page), the server will deploy a packet (ie the ball) to the center of the Game Room.  It is your goal to touch the packet, thus picking it up, and bring it to the goal that glows in a different color.  Scoring a goal will cause the server to drop another packet after a slight delay.  
+
+You can kill other players by shooting them and deflect shots fired at you with your trusty shield.  Killing a player forces them to drop the ball, enabling you to score a goal.  Play continues until one player reaches a certain number of goals (victory condition not yet implemented).
+
+To play again, all players must close the browser window to reset the server.  Wait 10 seconds and navigate to the game page.  The server will take care of the rest.
+
