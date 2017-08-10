@@ -73,6 +73,10 @@ io.on('connection', function(socket) {
         }
     });
 
+    socket.on('ballCarrierKilled', function (){
+        ballCarried = 0;
+    });
+
     //Someone scored a goal.  Emit this information to each client.
     socket.on('scoreGoal', function(playerID) {
         setTimeout(spawnBall, 5000);

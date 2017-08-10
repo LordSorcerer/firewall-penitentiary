@@ -20,7 +20,7 @@ var playerShields = [],
     scoreList = [0, 0, 0, 0],
     playerShield, playerGun,
     playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun,
-    pillars, gun, gameBall, newEntity,
+    pillars, gun, gameBall, gameBalls, newEntity,
     fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, enableGameInput;
 //Constants!
 var maxPlayers = 4;
@@ -126,7 +126,8 @@ function create() {
     baseTextE = game.add.text(770, 300, "0", { font: "40px Orbitron", fill: "#FFFF00", align: "center" });
     baseTextS = game.add.text(380, 550, "0", { font: "40px Orbitron", fill: "#0000FF", align: "center" });
     baseTextW = game.add.text(20, 300, "0", { font: "40px Orbitron", fill: "#00FF00", align: "center" });
-
+    //Adds a ball group
+    gameBalls = game.add.group();
     //Adds a group called pillars and then adds one in front of each player's base
     pillars = game.add.group();
     pillar = pillars.create(175, 275, 'pillar');
@@ -220,8 +221,8 @@ function update() {
     game.physics.arcade.collide(playerList, pillars);
     game.physics.arcade.collide(playerList, playerList);
     //Client specific physics checks - mishandling of these is what lead to the multi-ball spawn issue.
-    //Make sure only the player using this instance of the client checks to grab the ball.  Each player will do that on their own screen.
-    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBall, ballRequest, null, this);
+    //Make sure only the player using this instance of the client checks to grab the ball.  Each player will do that on their own screen.  NOTE: gameBalls (group) is used because the gameBalls are created dynamically
+    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBalls, ballRequest, null, this);
     //Make sure only the player using this instance of the client checks to see if they've scored a goal.  Each player will do that on their own screen.
     game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], goals, checkGoal, null, this);
 
@@ -379,9 +380,14 @@ function killPlayer(player, bullet) {
     if (player.data.hasBall === 1) {
         gameBall.destroy();
         player.data.hasBall = 0;
-        //And make a new one
-        gameBall = game.add.sprite(player.x, player.y, 'ball03');
-
+        //Let the server know that the ball carrier is dead so it can listen to ballRequests again
+        socket.emit('ballCarrierKilled');
+        //And make a new one, adding it to the gameBalls group
+        gameBall = game.add.sprite(player.x + 15, player.y + 15, 'ball03');
+        game.physics.arcade.enable(gameBall);
+        gameBall.body.isCircle = true;
+        console.log(gameBall);
+        gameBalls.add(gameBall);
     };
     //Shatter sound effect
     shatter.play();
@@ -584,6 +590,7 @@ function ballCarrier(playerID) {
     playerList[playerID].data.hasBall = 1;
 };
 
+
 function checkGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.data.active === 1) {
         player.data.hasBall = 0;
@@ -595,6 +602,7 @@ function checkGoal(player, goal) {
 function scoreGoal(player) {
     //Destroy the ball
     gameBall.destroy();
+    console.log(gameBalls);
     //Show the goal text for 3 seconds and then hide it again
     text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
     text.anchor.setTo(0.5, 0.5);
@@ -610,7 +618,6 @@ function scoreGoal(player) {
             goal.data.active = 0;
             goal.animations.play('flash');
         };
-
     });
 };
 

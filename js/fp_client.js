@@ -67,9 +67,10 @@
             newEntity.body.isCircle = true;
             if (entity.name === 'ball03') {
                 gameBall = newEntity;
+                console.log(gameBall);
+                gameBalls.add(gameBall);
                 highlightGoal();
             };
-
             /*roomEntities.push(newEntity);*/
         });
 
@@ -79,7 +80,7 @@
 
         socket.on('scoreGoal', function(score) {
             scoreGoal(score.playerID);
-             console.log(score.scoreList);
+            console.log(score.scoreList);
             updateScoreBoard(score.scoreList);
         });
 
