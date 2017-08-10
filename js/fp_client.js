@@ -33,7 +33,7 @@
             //Make sure we're updating the right player and gun
             currentPlayer = playerList[update.playerID];
             currentGun = playerGuns[update.playerID];
-            //Update player's location on other clients' screens
+            //Update player's location on other clients' screens before running the update
             if (update.playerID !== myPlayerUpdate.playerID) {
                 currentPlayer.x = update.x;
                 currentPlayer.y = update.y;
@@ -58,7 +58,7 @@
             fontColor = newMessage.fontColor;
             message = newMessage.message;
             htmlChatWindow.append("<li><span style='color:" + fontColor + ";'>" + sender + ": </span>" + message + "</li>");
-            if (sender === "Serfver") {
+            if (sender === "Server") {
                 responsiveVoice.speak(message);
             };
             //Scrolls to the newest message
@@ -72,7 +72,6 @@
             newEntity.body.isCircle = true;
             if (entity.name === 'ball03') {
                 gameBall = newEntity;
-                console.log(gameBall);
                 gameBalls.add(gameBall);
                 highlightGoal();
             };
@@ -81,6 +80,10 @@
 
         socket.on('ballCarrier', function(playerID) {
             ballCarrier(playerID);
+        });
+
+        socket.on('ballCarrierKilled', function(playerID){
+            ballCarrierKilled(playerID);
         });
 
         socket.on('scoreGoal', function(score) {

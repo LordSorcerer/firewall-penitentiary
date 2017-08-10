@@ -1,13 +1,12 @@
     body {
         font-family: 'Audiowide', cursive;
         background: radial-gradient(circle, black, #0282ff, black);
-        display: flex;
-
-        margin-bottom: 50px;
     }
 
     .wrapper {
         width: 100%;
+        margin: 0px auto;
+        display: inline-flex;
         justify-content: center;
     }
 
@@ -20,46 +19,59 @@
     }
 
     canvas {
+        font-family: Orbitron;
         text-align: center;
-        margin: 0 auto;
-        /*box-shadow: 5px 5px 5px #17206b;*/
+        margin: 10px;
+        float: left;
         box-shadow: 0 0 1em #51dfff, 0 0 1em #51dfff, 0 0 1em #51dfff;
+    }
+
+
+
+    #sideBar {
+        width: 500px;
+        height: 560px;
+        box-shadow: 0 0 1em #51dfff, 0 0 1em #51dfff, 0 0 1em #51dfff;
+        margin: 10px;
+        padding: 20px;
+        float: right;
+        font-size: 16px;
     }
 
     #chatWindow {
         background-color: black;
         color: white;
-        width: 75%;
-        height: 150px;
-        margin: 30px auto;
-        padding: 10px;
+        width: 90%;
+        height: 70%;
         overflow: auto;
-        box-shadow: 0 0 1em #51dfff, 0 0 1em #51dfff, 0 0 1em #51dfff;
+        border-spacing: 10px;
+        border: 2px solid #dbdbdb;
     }
 
     #chatBar {
+
         margin: 10px auto;
         text-align: center;
     }
 
     #message {
+        font-family: 'Audiowide', cursive;
+        width: 80%;
         margin: 10px auto;
     }
 
     #sendChat {
+        width: 15%;
         margin: 10px auto;
-        width: 10%;
     }
 
-    table {
+    #scoreBoard {
         font-size: 20px;
         border: 2px solid #dbdbdb;
         background-color: black;
         box-sizing: border-box;
-        width: 300px;
-        float: left;
-        margin-top: 20px;
-        margin-left: 30px;
+        width: 500px;
+        justify-content: center;
         border-collapse: separate;
         border-spacing: 10px;
     }

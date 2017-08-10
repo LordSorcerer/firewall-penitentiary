@@ -66,27 +66,29 @@ io.on('connection', function(socket) {
     });
 
     //Once a ballCarrier emit is received, ignore requests until a goal is scored
-    socket.on('ballCarrier', function(playerID) {
+    socket.on('requestBallCarrier', function(playerID) {
         if (ballCarried === 0) {
             io.emit('ballCarrier', playerID);
             ballCarried = 1;
         }
     });
 
-    socket.on('ballCarrierKilled', function (loc){
+    socket.on('requestBallCarrierKilled', function(ballCarrier) {
         ballCarried = 0;
-        //Send the new ball location to the players
-        spawnEntity(loc.x, loc.y, 'ball03');
+        // //Send the new ball location to the players
+        io.emit('ballCarrierKilled', ballCarrier.playerID);
+        spawnEntity(ballCarrier.x, ballCarrier.y, 'ball03');
+
     });
 
     //Someone scored a goal.  Emit this information to each client.
-    socket.on('scoreGoal', function(playerID) {
+    socket.on('requestScoreGoal', function(playerID) {
         setTimeout(spawnBall, 5000);
         ballCarried = 0;
         scoreList[playerID] += 1;
         console.log(scoreList);
         //Pass the player ID and the scoreList to run scoreGoal() and updateScoreBoard()
-        io.emit('scoreGoal', {playerID, scoreList});
+        io.emit('scoreGoal', { playerID, scoreList });
     });
 
     socket.on('disconnect', function() {

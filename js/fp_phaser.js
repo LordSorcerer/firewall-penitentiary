@@ -20,7 +20,7 @@ var playerShields = [],
     scoreList = [0, 0, 0, 0],
     playerShield, playerGun,
     playerBlue, playerRed, playerYellow, playerGreen, currentPlayer, currentGun,
-    pillars, gun, gameBall, gameBalls, newEntity,
+    forcefields, gun, gameBall, gameBalls, newEntity,
     fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, enableGameInput;
 //Constants!
 var maxPlayers = 4;
@@ -65,14 +65,14 @@ function preload() {
     //Don't pause the game when focus is lost
     game.stage.disableVisibilityChange = true;
     //Add in all the game assets we're going to use
-    game.load.image('map02', '../assets/map02.png');
-    game.load.image('pillar', '../assets/pillar.png');
+    game.load.image('map03', '../assets/map03.png');
     game.load.image('deathZero', '../assets/deathZero.png');
     game.load.image('deathOne', '../assets/deathOne.png');
     game.load.image('deathTwo', '../assets/deathTwo.png');
     game.load.image('deathFive', '../assets/deathFive.png');
     game.load.image('ball03', '../assets/ball03.png');
-    game.load.spritesheet('goal', '../assets/goal.png', 100, 100);
+    game.load.image('forcefield', '../assets/forcefield.png');
+    game.load.spritesheet('goal', '../assets/goal3.png', 110, 110);
     game.load.spritesheet('playerBullet', '../assets/playerBullet.png', 10, 10);
     game.load.spritesheet('shield_blue', '../assets/shield_blue.png', 32, 10);
     game.load.spritesheet('shield_red', '../assets/shield_red.png', 32, 10);
@@ -93,7 +93,7 @@ function create() {
     //Create all the sprites
     gameMusic[currentMusic].play();
     /*Create map & terrain features*/
-    game.add.sprite(0, 0, 'map02');
+    game.add.sprite(0, 0, 'map03');
     //Adds a group called goals and puts one in each corner
     goals = game.add.group();
     //Create the four goals, setting their location and image rotation
@@ -122,24 +122,24 @@ function create() {
     goalSE.body.setCircle(64, 0, 0);
 
     //Scorekeeping text in the bases
-    baseTextN = game.add.text(380, 5, "0", { font: "40px Orbitron", fill: "#FF0000", align: "center" });
-    baseTextE = game.add.text(770, 300, "0", { font: "40px Orbitron", fill: "#FFFF00", align: "center" });
-    baseTextS = game.add.text(380, 550, "0", { font: "40px Orbitron", fill: "#0000FF", align: "center" });
-    baseTextW = game.add.text(20, 300, "0", { font: "40px Orbitron", fill: "#00FF00", align: "center" });
+    baseTextN = game.add.text(390, 5, "0", { font: "40px Orbitron", fill: "#FFFFFF", align: "center" });
+    baseTextE = game.add.text(760, 280, "0", { font: "40px Orbitron", fill: "#FFFFFF", align: "center" });
+    baseTextS = game.add.text(390, 550, "0", { font: "40px Orbitron", fill: "#FFFFFF", align: "center" });
+    baseTextW = game.add.text(10, 280, "0", { font: "40px Orbitron", fill: "#FFFFFF", align: "center" });
     //Adds a ball group
     gameBalls = game.add.group();
-    //Adds a group called pillars and then adds one in front of each player's base
-    pillars = game.add.group();
-    pillar = pillars.create(175, 275, 'pillar');
-    pillars.create(575, 275, 'pillar');
-    pillars.create(375, 125, 'pillar');
-    pillars.create(375, 425, 'pillar');
-    //Enable physics for the pillars group
-    game.physics.arcade.enable(pillars);
-    //Iterates over each member of the pillars group and stops them from leaving map.
-    pillars.forEachAlive(function(pillar) {
-        pillar.body.collideWorldBounds = true;
-        pillar.body.immovable = true;
+    //Adds a group called forcefields and then adds one in front of each player's base
+    forcefields = game.add.group();
+    forcefield = forcefields.create(175, 260, 'forcefield');
+    forcefields.create(555, 265, 'forcefield');
+    forcefields.create(365, 125, 'forcefield');
+    forcefields.create(365, 395, 'forcefield');
+    //Enable physics for the forcefields group
+    game.physics.arcade.enable(forcefields);
+    //Iterates over each member of the forcefields group and stops them from leaving map.
+    forcefields.forEachAlive(function(forcefield) {
+        forcefield.body.collideWorldBounds = true;
+        forcefield.body.immovable = true;
     });
 
     //Sets up the particle emitter to be used upon player death
@@ -195,9 +195,12 @@ function create() {
 
 function update() {
     //If chatting has enabled game input, update here
-    if (enableGameInput === 1) {
+    if (game.input.activePointer.withinGame) {
         game.input.enabled = true;
-    }
+    } else {
+        game.input.enabled = false;
+    };
+
     /*  goals.forEachAlive(function(goal) {
           game.debug.body(goal);
       });*/
@@ -207,9 +210,8 @@ function update() {
         playerGuns[i].bullets.forEachAlive(function(playerBullet) {
             //Set up bullet collision events
             game.physics.arcade.collide(playerShields, playerBullet);
-            game.physics.arcade.collide(playerBullet, pillars);
+            game.physics.arcade.collide(playerBullet, forcefields);
             game.physics.arcade.collide(playerList, playerBullet, killPlayer, null, this);
-
             playerBullet.angle += 10;
             playerBullet.body.bounce.x = 1;
             playerBullet.body.bounce.y = 1;
@@ -218,13 +220,13 @@ function update() {
     };
 
     //Collision with players and obstacles
-    game.physics.arcade.collide(playerList, pillars);
+    game.physics.arcade.collide(playerList, forcefields);
     game.physics.arcade.collide(playerList, playerList);
     //Client specific physics checks - mishandling of these is what lead to the multi-ball spawn issue.
     //Make sure only the player using this instance of the client checks to grab the ball.  Each player will do that on their own screen.  NOTE: gameBalls (group) is used because the gameBalls are created dynamically
-    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBalls, ballRequest, null, this);
+    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], gameBalls, requestBallCarrier, null, this);
     //Make sure only the player using this instance of the client checks to see if they've scored a goal.  Each player will do that on their own screen.
-    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], goals, checkGoal, null, this);
+    game.physics.arcade.overlap(playerList[myPlayerUpdate.playerID], goals, requestScoreGoal, null, this);
 
     //Stop the following keys from propagating up to the browser - is this necessary?
     game.input.keyboard.addKeyCapture([Phaser.Keyboard.SPACEBAR]);
@@ -271,14 +273,6 @@ function update() {
         myPlayerUpdate.fire = 1;
     } else {
         myPlayerUpdate.fire = 0;
-    };
-
-    //Pressing enter changes focus from the chat to the game and vice versa
-    if (enterButton.isDown) {
-        myPlayerUpdate.move = 0;
-        myPlayerUpdate.fire = 0;
-        htmlMessage.focus();
-        game.input.enabled = false;
     };
 
     if (gameStatus != -1) {
@@ -344,7 +338,7 @@ function spawnPlayer(playerColor) {
     //set Circular hitbox centered on player's head
     player.body.isCircle = true;
     player.body.setCircle(15, 5, 5);
-    //Stop player and pillars from leaving map.
+    //Stop player and forcefields from leaving map.
     player.body.collideWorldBounds = true;
     //Make the player walk
     player.animations.add('walk', [0, 1, 2, 3], 5, true);
@@ -369,44 +363,11 @@ function spawnPlayer(playerColor) {
     return player;
 };
 
-function respawnPlayer(player) {
-    player.reset(player.data.respawnX, player.data.respawnY);
-    player.children["0"].revive();
-};
-
-//Kills the player on contact with a bullet.  Now with fancy particle explosions!
-function killPlayer(player, bullet) {
-    //Get rid of the ball if the player has it
-    if (player.data.hasBall === 1) {
-        gameBall.destroy();
-        player.data.hasBall = 0;
-        //Let the server know that the ball carrier is dead so it can listen to ballRequests again and make a new ball on the same spot
-        socket.emit('ballCarrierKilled', { x: player.x, y: player.y });
-    };
-    //Shatter sound effect
-    shatter.play();
-    //Explosion of binary 'gore'
-    emitter.x = player.x;
-    emitter.y = player.y;
-    emitter.start(true, 3000, null, 30);
-    //Remove the bullet, too
-    bullet.kill();
-    //kill child 0 (the shield) to prevent 'phantom bounce'
-    player.children["0"].kill();
-    //Finally, kill the player
-    player.kill();
-    //Respawn after 5 seconds
-    setTimeout(respawnPlayer, 5000, player);
-}
-
 /*Player movement routines */
 
 function playerMove(update) {
     currentPlayer.body.velocity.x = 0;
     currentPlayer.body.velocity.y = 0;
-    //x,y currently broken
-    /*     currentPlayer.x = update.x;
-         currentPlayer.y = update.y;*/
     var strafe = update.strafe;
     switch (update.move) {
         case 1: //north
@@ -549,6 +510,10 @@ function playerFire(update) {
 
 
 function highlightGoal() {
+    //Reset the frame on all the goals to inactive, just to be safe.
+    goals.forEachAlive(function(goal) {
+        goal.frame = 0;
+    });
     if (gameBall.x < 400) {
         if (gameBall.y < 300) {
             goalSE.data.active = 1;
@@ -568,9 +533,53 @@ function highlightGoal() {
     }
 };
 
+function respawnPlayer(player) {
+    player.reset(player.data.respawnX, player.data.respawnY);
+    player.children["0"].revive();
+};
+
+//The client knows the ball carrier died, now tell the server
+function ballCarrierKilled(playerID) {
+    gameBall.destroy();
+    //kills the ball carrier
+    killEffects(playerList[playerID]);
+    playerList[playerID].data.hasBall = 0;
+    console.log("ballCarrierKilled");
+};
+
+//Kills the player on contact with a bullet.  Now with fancy particle explosions!
+function killPlayer(player, bullet) {
+    //Remove the bullet
+    bullet.kill();
+    //Tell the server the ball carrier died
+    if (player.data.hasBall === 1 && player === playerList[myPlayerUpdate.playerID]) {
+        socket.emit('requestBallCarrierKilled', { x: player.x, y: player.y, playerID: myPlayerUpdate.playerID });
+        console.log("requestBallCarrierKilled");
+    } else {
+        //Runs the effects of being shot on the player
+        killEffects(player);
+    };
+
+}
+
+function killEffects(player) {
+    //Shatter sound effect
+    shatter.play();
+    //Explosion of binary 'gore'
+    emitter.x = player.x;
+    emitter.y = player.y;
+    emitter.start(true, 3000, null, 30);
+    //kill child 0 (the shield) to prevent 'phantom bounce'
+    player.children["0"].kill();
+    //Finally, kill the player
+    player.kill();
+    //Respawn the dead player in 5 seconds
+    setTimeout(respawnPlayer, 5000, player);
+};
+
 //Sends a ball grab request emit to the server
-function ballRequest(player) {
-    socket.emit('ballCarrier', myPlayerUpdate.playerID);
+function requestBallCarrier() {
+    socket.emit('requestBallCarrier', myPlayerUpdate.playerID);
 };
 
 //Upon receiving a ballCarrier emit from the server, give the right player the ball.
@@ -585,37 +594,42 @@ function ballCarrier(playerID) {
 };
 
 
-function checkGoal(player, goal) {
+function requestScoreGoal(player, goal) {
     if (player.data.hasBall === 1 && goal.data.active === 1) {
         player.data.hasBall = 0;
-        socket.emit('scoreGoal', myPlayerUpdate.playerID);
+        socket.emit('requestScoreGoal', myPlayerUpdate.playerID);
     };
 }
 
-//Checks to see if the player has the ball and the goal is active
-function scoreGoal(player) {
-    player.data.hasBall = 0;
+//Destroys the ball, plays sound effect, flashes goal
+function scoreGoal(playerID) {
+    player = playerList[playerID];
     //Destroy the ball
     gameBall.destroy();
-    console.log(gameBalls);
-    //Show the goal text for 3 seconds and then hide it again
-    text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-\nGOAL!", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
-    text.anchor.setTo(0.5, 0.5);
-    text.visible = true;
-    setTimeout(function() {
-        text.visible = false;
-    }, 3000);
+    player.data.hasBall = 0;
     //Play sound effect and flash the goal on and off
     goalBleep.play();
     goals.forEachAlive(function(goal) {
-        //Turn off all the goals and flash the one that was active
+        //Flash the active goal
         if (goal.data.active === 1) {
             goal.data.active = 0;
             goal.animations.play('flash');
         };
     });
+
+    console.log(gameBalls);
+    //Show the goal text for 3 seconds and then hide it again
+    text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
+    text.anchor.setTo(0.5, 0.5);
+    text.visible = true;
+    setTimeout(function() {
+        text.visible = false;
+    }, 3000);
+
+
 };
 
+//Puts the new score information into the scoreboard and into the player bases on the field
 function updateScoreBoard(newScoreList) {
     scoreList = newScoreList;
     htmlScoreRed.text(scoreList[0]);
