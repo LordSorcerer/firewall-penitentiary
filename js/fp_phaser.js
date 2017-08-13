@@ -23,7 +23,8 @@ var playerShields = [],
     forcefields, gun, gameBall, gameBalls, newEntity,
     fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, enableGameInput;
 //Constants!
-var maxPlayers = 4;
+var maxPlayers = 4,
+    maxBullets = 3;
 
 //JQuery html pointers
 var htmlMessage = $("#message"),
@@ -173,7 +174,6 @@ function create() {
     //playerGun: 3 shots on screen max, rate of fire: 2 per second, 5 second lifespan
 
     for (i = 0; i < maxPlayers; i++) {
-        var maxBullets = 3;
         playerGuns.push(game.add.weapon(3, 'playerBullet'));
         playerGuns[i].fireRate = 500;
         playerGuns[i].bulletSpeed = 300;
@@ -283,6 +283,16 @@ function update() {
     } else {
         myPlayerUpdate.fire = 0;
     };
+
+    //Updates this player's bullet locations
+    for (i = 0; i < maxBullets; i++) {
+        var tempArray = [];
+        tempArray[0] = playerGuns[myPlayerUpdate.playerID].bullets.children[i].x;
+        tempArray[1] = playerGuns[myPlayerUpdate.playerID].bullets.children[i].y;
+        myPlayerUpdate.bulletLocs[i] = tempArray;
+    }
+
+
 
     if (gameStatus != -1) {
         //Adds the player's current location to the update
@@ -515,6 +525,14 @@ function playerFire(update) {
     };
     currentGun.fire();
     explosion.play();
+};
+
+//Update all the player's bullets
+function updateBullets(playerID, bulletLocs) {
+    for (i = 0; i < maxBullets; i++) {
+        playerGuns[playerID].bullets.children[i].x = bulletLocs[i][0];
+        playerGuns[playerID].bullets.children[i].y = bulletLocs[i][1];
+    }
 };
 
 

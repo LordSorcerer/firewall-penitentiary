@@ -36,7 +36,11 @@
             if (update.playerID !== myPlayerUpdate.playerID) {
                 currentPlayer.x = update.x;
                 currentPlayer.y = update.y;
-            }
+                //Update all the player's bullets
+                updateBullets(update.playerID, update.bulletLocs);
+            };
+
+
             //Dead players shouldn't be updating themselves... unless they're zombies
             if (currentPlayer.alive === true) {
                 if (update.fire === 1) {
@@ -81,7 +85,7 @@
             ballCarrier(playerID);
         });
 
-        socket.on('playerKilled', function(playerID, bulletID){
+        socket.on('playerKilled', function(playerID, bulletID) {
             playerKilled(playerID, bulletID);
         });
 
