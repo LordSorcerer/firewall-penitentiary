@@ -7,7 +7,6 @@
     }
 
 
-
     $(document).ready(function() {
         //Establish network connection
         socket = io();
@@ -58,7 +57,7 @@
             fontColor = newMessage.fontColor;
             message = newMessage.message;
             htmlChatWindow.append("<li><span style='color:" + fontColor + ";'>" + sender + ": </span>" + message + "</li>");
-            if (sender === "Server") {
+            if (sender === "Serfver") {
                 responsiveVoice.speak(message);
             };
             //Scrolls to the newest message
@@ -82,8 +81,8 @@
             ballCarrier(playerID);
         });
 
-        socket.on('ballCarrierKilled', function(playerID){
-            ballCarrierKilled(playerID);
+        socket.on('playerKilled', function(playerID, bulletID){
+            playerKilled(playerID, bulletID);
         });
 
         socket.on('scoreGoal', function(score) {

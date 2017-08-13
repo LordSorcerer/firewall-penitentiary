@@ -39,7 +39,7 @@ io.on('connection', function(socket) {
                 setTimeout(function() {
                     io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     startGame();
-                }, 12000);
+                }, 120);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
@@ -73,12 +73,14 @@ io.on('connection', function(socket) {
         }
     });
 
-    socket.on('requestBallCarrierKilled', function(ballCarrier) {
-        ballCarried = 0;
-        // //Send the new ball location to the players
-        io.emit('ballCarrierKilled', ballCarrier.playerID);
-        spawnEntity(ballCarrier.x, ballCarrier.y, 'ball03');
-
+    socket.on('requestPlayerKilled', function(player) {
+        //Confirm player killed with client  o|o
+        io.emit('playerKilled', player.playerID, player.bulletID);
+        if (player.hasBall === 1) {
+            ballCarried = 0;
+            //Send the new ball to the player's location
+            spawnEntity(player.x, player.y, 'ball03');
+        }
     });
 
     //Someone scored a goal.  Emit this information to each client.

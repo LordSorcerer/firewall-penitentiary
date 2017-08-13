@@ -51,6 +51,7 @@ var myPlayerUpdate = {
         move: 0,
         x: 0,
         y: 0,
+        bulletLocs: [],
     },
 
     chatMessage = {
@@ -172,12 +173,18 @@ function create() {
     //playerGun: 3 shots on screen max, rate of fire: 2 per second, 5 second lifespan
 
     for (i = 0; i < maxPlayers; i++) {
+        var maxBullets = 3;
         playerGuns.push(game.add.weapon(3, 'playerBullet'));
         playerGuns[i].fireRate = 500;
         playerGuns[i].bulletSpeed = 300;
         playerGuns[i].trackSprite(playerList[i], 15, -25);
         playerGuns[i].bulletKillType = Phaser.Weapon.KILL_LIFESPAN;
         playerGuns[i].bulletLifespan = 5000;
+
+        //Iterates through all the bullets in the gun and assignes each a unique ID# pair - whichGun and whichBullet in said gun
+        for (j = 0; j < maxBullets; j++) {
+            playerGuns[i].bullets.children[j].data.ID = [i, j];
+        };
     };
 
     //Register cursor keys for player movement
@@ -199,6 +206,7 @@ function update() {
         game.input.enabled = true;
     } else {
         game.input.enabled = false;
+        myPlayerUpdate.move = 0;
     };
 
     /*  goals.forEachAlive(function(goal) {
@@ -211,7 +219,8 @@ function update() {
             //Set up bullet collision events
             game.physics.arcade.collide(playerShields, playerBullet);
             game.physics.arcade.collide(playerBullet, forcefields);
-            game.physics.arcade.collide(playerList, playerBullet, killPlayer, null, this);
+            //Only this client's player checks for death.  Every client does this on their own instance for their own player.
+            game.physics.arcade.collide(playerList[myPlayerUpdate.playerID], playerBullet, requestPlayerKilled, null, this);
             playerBullet.angle += 10;
             playerBullet.body.bounce.x = 1;
             playerBullet.body.bounce.y = 1;
@@ -539,28 +548,27 @@ function respawnPlayer(player) {
 };
 
 //The client knows the ball carrier died, now tell the server
-function ballCarrierKilled(playerID) {
-    gameBall.destroy();
-    //kills the ball carrier
+function playerKilled(playerID, bulletID) {
+    //kills the player
     killEffects(playerList[playerID]);
-    playerList[playerID].data.hasBall = 0;
-    console.log("ballCarrierKilled");
+    //If the player had the ball, destroy it
+    if (playerList[playerID].data.hasBall === 1) {
+        gameBall.destroy();
+        playerList[playerID].data.hasBall = 0;
+    };
+    console.log("BulletID: ");
+    console.log(bulletID);
+    whichGun = bulletID[0];
+    whichBullet = bulletID[1];
+    //Also kills the bullet
+    playerGuns[whichGun].bullets.children[whichBullet].kill();
 };
 
-//Kills the player on contact with a bullet.  Now with fancy particle explosions!
-function killPlayer(player, bullet) {
-    //Remove the bullet
-    bullet.kill();
-    //Tell the server the ball carrier died
-    if (player.data.hasBall === 1 && player === playerList[myPlayerUpdate.playerID]) {
-        socket.emit('requestBallCarrierKilled', { x: player.x, y: player.y, playerID: myPlayerUpdate.playerID });
-        console.log("requestBallCarrierKilled");
-    } else {
-        //Runs the effects of being shot on the player
-        killEffects(player);
-    };
-
-}
+//Requests the player's death on contact with a bullet
+function requestPlayerKilled(player, bullet) {
+    //Tells the server that this player should be killed and pass along the bullet ID so we can kill that, too
+    socket.emit('requestPlayerKilled', { x: player.x, y: player.y, playerID: myPlayerUpdate.playerID, hasBall: player.data.hasBall, bulletID: bullet.data.ID });
+};
 
 function killEffects(player) {
     //Shatter sound effect
