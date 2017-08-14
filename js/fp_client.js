@@ -10,12 +10,9 @@
     $(document).ready(function() {
         //Establish network connection
         socket = io();
-        //tell the server you have an ID or that you have no id (ID < 0)
-        // myPlayerUpdate.playerID = localStorage.getItem("playerID");
-        existingUser = sessionStorage.getItem("playerID");
-        if (existingUser == null) {
+
+        //request an ID from the server
             socket.emit('requestPlayerID');
-        }
 
         //Get a playerID from the server
         socket.on('playerID', function(ID) {
@@ -56,19 +53,20 @@
             currentMusic = track;
         });
 
+//Breaks the message into three parts, identifying the sender, font color and actual message
         socket.on('chat', function(newMessage) {
             sender = newMessage.sender;
             fontColor = newMessage.fontColor;
             message = newMessage.message;
             htmlChatWindow.append("<li><span style='color:" + fontColor + ";'>" + sender + ": </span>" + message + "</li>");
-            if (sender === "Serfver") {
+            if (sender === "Server") {
                 responsiveVoice.speak(message);
             };
             //Scrolls to the newest message
             htmlChatWindow.animate({ scrollTop: htmlChatWindow.prop('scrollHeight') }, 0);
-            enableGameInput = 1;
         });
 
+//Create a new game entity.  In this case, the ball is created but the function is set up to create any game entity.
         socket.on('spawnEntity', function(entity) {
             newEntity = game.add.sprite(entity.x, entity.y, entity.name);
             game.physics.arcade.enable(newEntity);
@@ -78,7 +76,6 @@
                 gameBalls.add(gameBall);
                 highlightGoal();
             };
-            /*roomEntities.push(newEntity);*/
         });
 
         socket.on('ballCarrier', function(playerID) {
@@ -91,7 +88,6 @@
 
         socket.on('scoreGoal', function(score) {
             scoreGoal(score.playerID);
-            console.log(score.scoreList);
             updateScoreBoard(score.scoreList);
         });
 

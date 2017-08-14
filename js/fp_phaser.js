@@ -42,7 +42,6 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'mainScreen', {
 });
 
 
-
 //Network functionality
 var socket, sender, message;
 var myPlayerUpdate = {
@@ -209,10 +208,6 @@ function update() {
         myPlayerUpdate.move = 0;
     };
 
-    /*  goals.forEachAlive(function(goal) {
-          game.debug.body(goal);
-      });*/
-
     //Iterate through each player's gun's bullets and change them as defined below
     for (i = 0; i < playerGuns.length; i++) {
         playerGuns[i].bullets.forEachAlive(function(playerBullet) {
@@ -291,7 +286,6 @@ function update() {
         tempArray[1] = playerGuns[myPlayerUpdate.playerID].bullets.children[i].y;
         myPlayerUpdate.bulletLocs[i] = tempArray;
     }
-
 
 
     if (gameStatus != -1) {
@@ -574,8 +568,6 @@ function playerKilled(playerID, bulletID) {
         gameBall.destroy();
         playerList[playerID].data.hasBall = 0;
     };
-    console.log("BulletID: ");
-    console.log(bulletID);
     whichGun = bulletID[0];
     whichBullet = bulletID[1];
     //Also kills the bullet
@@ -643,7 +635,6 @@ function scoreGoal(playerID) {
         };
     });
 
-    console.log(gameBalls);
     //Show the goal text for 3 seconds and then hide it again
     text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
     text.anchor.setTo(0.5, 0.5);
