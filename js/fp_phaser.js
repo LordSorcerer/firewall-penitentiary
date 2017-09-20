@@ -23,7 +23,8 @@ var playerShields = [],
     forcefields, gun, gameBall, gameBalls, newEntity,
     fireButton, strafeButton, cursors, keyA, keyS, keyW, keyD, enableGameInput;
 //Constants!
-var maxPlayers = 4;
+var maxPlayers = 4,
+    maxBullets = 3;
 
 //JQuery html pointers
 var htmlMessage = $("#message"),
@@ -39,7 +40,6 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, 'mainScreen', {
     create: create,
     update: update,
 });
-
 
 
 //Network functionality
@@ -173,7 +173,6 @@ function create() {
     //playerGun: 3 shots on screen max, rate of fire: 2 per second, 5 second lifespan
 
     for (i = 0; i < maxPlayers; i++) {
-        var maxBullets = 3;
         playerGuns.push(game.add.weapon(3, 'playerBullet'));
         playerGuns[i].fireRate = 500;
         playerGuns[i].bulletSpeed = 300;
@@ -208,10 +207,6 @@ function update() {
         game.input.enabled = false;
         myPlayerUpdate.move = 0;
     };
-
-    /*  goals.forEachAlive(function(goal) {
-          game.debug.body(goal);
-      });*/
 
     //Iterate through each player's gun's bullets and change them as defined below
     for (i = 0; i < playerGuns.length; i++) {
@@ -283,6 +278,15 @@ function update() {
     } else {
         myPlayerUpdate.fire = 0;
     };
+
+    //Updates this player's bullet locations
+    for (i = 0; i < maxBullets; i++) {
+        var tempArray = [];
+        tempArray[0] = playerGuns[myPlayerUpdate.playerID].bullets.children[i].x;
+        tempArray[1] = playerGuns[myPlayerUpdate.playerID].bullets.children[i].y;
+        myPlayerUpdate.bulletLocs[i] = tempArray;
+    }
+
 
     if (gameStatus != -1) {
         //Adds the player's current location to the update
@@ -517,6 +521,14 @@ function playerFire(update) {
     explosion.play();
 };
 
+//Update all the player's bullets
+function updateBullets(playerID, bulletLocs) {
+    for (i = 0; i < maxBullets; i++) {
+        playerGuns[playerID].bullets.children[i].x = bulletLocs[i][0];
+        playerGuns[playerID].bullets.children[i].y = bulletLocs[i][1];
+    }
+};
+
 
 function highlightGoal() {
     //Reset the frame on all the goals to inactive, just to be safe.
@@ -556,8 +568,6 @@ function playerKilled(playerID, bulletID) {
         gameBall.destroy();
         playerList[playerID].data.hasBall = 0;
     };
-    console.log("BulletID: ");
-    console.log(bulletID);
     whichGun = bulletID[0];
     whichBullet = bulletID[1];
     //Also kills the bullet
@@ -625,7 +635,6 @@ function scoreGoal(playerID) {
         };
     });
 
-    console.log(gameBalls);
     //Show the goal text for 3 seconds and then hide it again
     text = game.add.text(game.world.centerX, game.world.centerY, "-Packet Delivered-", { font: "30px Orbitron", fill: "#FF00FF", align: "center" });
     text.anchor.setTo(0.5, 0.5);

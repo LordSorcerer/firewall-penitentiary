@@ -39,7 +39,7 @@ io.on('connection', function(socket) {
                 setTimeout(function() {
                     io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     startGame();
-                }, 120);
+                }, 12000);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
@@ -74,7 +74,7 @@ io.on('connection', function(socket) {
     });
 
     socket.on('requestPlayerKilled', function(player) {
-        //Confirm player killed with client  o|o
+        //Confirm player killed with clients
         io.emit('playerKilled', player.playerID, player.bulletID);
         if (player.hasBall === 1) {
             ballCarried = 0;
@@ -88,11 +88,12 @@ io.on('connection', function(socket) {
         setTimeout(spawnBall, 5000);
         ballCarried = 0;
         scoreList[playerID] += 1;
-        console.log(scoreList);
+        console.log("Score - [R: " + scoreList[0] + ", Y: " + scoreList[1] + ", B: " + scoreList[2] + ", G: " + scoreList[3] + "]");
         //Pass the player ID and the scoreList to run scoreGoal() and updateScoreBoard()
         io.emit('scoreGoal', { playerID, scoreList });
     });
 
+//When a player logs out, run this disconnect 
     socket.on('disconnect', function() {
         //get the disconnected socket ID and remove it from the playerList
         var index = matchPlayerSocketID(socket.id);
@@ -133,7 +134,7 @@ function matchPlayerSocketID(currentSocketID) {
     return ret;
 };
 
-//Create a number of playerIDs equal to maxPlayers and put them in the freeIDList
+//Create a number of playerIDs equal to maxPlayers and put them in the freeIDList, set all scores and ballCarried status to 0
 function setupServer() {
     for (i = 0; i < maxPlayers; i++) {
         gameActive = 0;
