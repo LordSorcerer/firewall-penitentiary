@@ -34,22 +34,21 @@ io.on('connection', function(socket) {
             playerList.push({ 'socketID': socket.id, 'playerID': playerID });
             console.log("FreeIDList(" + freeIDList.length + " slot(s) available): " + freeIDList);
             //The Server chats with either the joining player's socket or ALL players' sockets
-            if (freeIDList.length <= 0) {
-                io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The final player has joined.  Ten seconds until game time." });
+            if (freeIDList.length <= 3) {
+                socket.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Welcome to Firewall Penitentiary, Player#" + playerID + ".  Use the W, A, S, D or arrow keys to move and space bar to shoot.  Your shield reflects bullets on contact.  When the ball drops, pick it up by touching it and bring it to the highlighted goal. As a note, if you are unable to move please place the mouse cursor over the play field on the left.  Moving the cursor outside said field enables chat mode." });
                 setTimeout(function() {
-                    io.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game has begun!" });
                     startGame();
-                }, 12000);
+                }, 5000);
                 io.emit('music', 1);
             } else {
                 socket.broadcast.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "A new player has joined the game.  Welcome, Player#" + playerID + "." });
-                socket.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Welcome to Firewall Penitentiary.  Your body has been immobilized until the start of the game.  Wait patiently, Player#" + playerID + "." });
+                socket.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "Welcome to Firewall Penitentiary, Player#" + playerID + ".  Use the W, A, S, D or arrow keys to move and space bar to shoot.  Your shield reflects bullets on contact.  When the ball drops, pick it up by touching it and bring it to the highlighted goal." });
             }
 
         } else {
             socket.emit('playerID', -1);
             console.log("Socket: " + socket.id + ", game full.  Enabling observation mode.");
-            socket.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game is full.  Switching to observation mode." });
+            socket.emit('chat', { sender: "Server", fontColor: "#FF00FF", message: "The game is full.  Please try again later." });
             socket.emit('music', 1);
         };
     });
