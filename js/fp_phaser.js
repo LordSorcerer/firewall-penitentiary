@@ -141,6 +141,7 @@ function create() {
     forcefields.forEachAlive(function(forcefield) {
         forcefield.body.collideWorldBounds = true;
         forcefield.body.immovable = true;
+        forcefield.body.setSize(25,25,25,25);  
     });
 
     //Sets up the particle emitter to be used upon player death

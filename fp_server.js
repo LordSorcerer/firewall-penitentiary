@@ -153,7 +153,7 @@ function startGame() {
 function spawnBall() {
     ballXLoc = randomIntFromInterval(100, 700) - 17;
     ballYLoc = randomIntFromInterval(100, 500) - 17;
-    //emit the signal to spawn and entity(the ball at) x,y coordinates
+    //emit the signal to spawn an entity (the ball) at x,y coordinates
     spawnEntity(ballXLoc, ballYLoc, 'ball03');
 }
 
